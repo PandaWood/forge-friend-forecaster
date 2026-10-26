@@ -59,7 +59,3 @@ python forge_predict.py --item SpearBronze --level 3 --fch Thor.fch
 
 - [Forge Oracle](https://github.com/papptimus/Forge-Oracle) by papptimus: the original tool and roll mechanics.
 - [ValheimSaveParser](https://github.com/Melichor/ValheimSaveParser) by Melichor: independent confirmation of the odds.
-
-## Licence
-
-Forge Oracle has no licence yet. Until permission to build on it is settled, no licence is granted here.
