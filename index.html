@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Forge Oracle</title>
 <meta name="color-scheme" content="dark light">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Uncial+Antiqua&family=Vollkorn:ital,wght@0,400;0,500;0,700;1,400&family=Noto+Sans+Runic&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Uncial+Antiqua&family=Vollkorn:wght@400;500;700&family=Noto+Sans+Runic&display=swap">
 <style>
 /* The smithy at night. An item's level is shown as the colour of heated iron: cold grey, cherry, orange, yellow, white-hot. */
 :root{
@@ -56,6 +56,15 @@ button:focus-visible,summary:focus-visible{outline:2px solid var(--amber);outlin
 .age:hover{border-color:var(--slag)}
 .age[aria-pressed="true"]{background:var(--amber);border-color:var(--amber);color:var(--onamber)}
 
+.finder{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:end}
+.finder input{font-size:20px;max-width:none}
+/* Name and friends side by side, stacked on narrow screens. Labels sit on the bottom so the boxes line up */
+.who{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:end}
+.who input{max-width:none}
+@media (max-width:560px){.who{grid-template-columns:1fr}}
+select{font:500 20px var(--body);color:var(--ash);background:var(--anvil);border:1px solid var(--iron);border-bottom:3px solid var(--iron);border-radius:3px;padding:9px 10px}
+select:focus{outline:none;border-color:var(--amber)}
+
 .results h2{font:500 26px/1.2 var(--body);margin:0}
 .results>p{color:var(--slag);font-size:17px;margin:6px 0 14px}
 
@@ -68,7 +77,9 @@ button:focus-visible,summary:focus-visible{outline:2px solid var(--amber);outlin
 .ingot{height:40px;display:grid;place-items:center;font:700 22px var(--body);background:var(--hc);color:var(--oc);
   clip-path:polygon(9% 0,91% 0,100% 100%,0 100%)}
 .nm{font-size:20px;line-height:1.25;display:block}
-.sub{font-size:15px;color:var(--slag)}
+.sub{font-size:15px;color:var(--slag);display:block}
+.cost{font-size:16px;display:block}
+.cost.free{color:var(--good)}
 .h4{--hc:var(--h4);--oc:var(--on4)}.h5{--hc:var(--h5);--oc:var(--on5)}.h6{--hc:var(--h6);--oc:var(--on6)}
 .h7{--hc:var(--h7);--oc:var(--on7)}.h8{--hc:var(--h8);--oc:var(--on8)}
 /* Hot iron glows. The glow sits on a wrapper because clip-path would cut it off */
@@ -92,10 +103,21 @@ button:focus-visible,summary:focus-visible{outline:2px solid var(--amber);outlin
 .target small{font-size:13px;color:var(--slag)}
 .target:hover{border-color:var(--slag)}
 .target[aria-pressed="true"]{border-color:var(--amber);color:var(--amber)}
-.runs{display:grid;gap:3px;margin-top:10px;font-size:16px}
-.run{display:flex;flex-wrap:wrap;gap:2px 14px}
-.run>b{font-weight:500;color:var(--slag);min-width:4.5ch}
+.route{margin-top:10px;font-size:16px}
+.route .runhead{margin:14px 0 4px;color:var(--slag)}
+.route .runhead:first-child{margin-top:0}
+.step{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:baseline;padding:2px 0}
+.step>b{font-weight:500;min-width:6ch}
+.step>span{display:flex;flex-wrap:wrap;gap:2px 14px}
+.why{margin:0 0 2px;font-size:15px;color:var(--slag)}
+.step+.why{padding-left:calc(6ch + 14px)}
+.give{margin:2px 0;padding-left:12px;border-left:2px solid var(--amber);color:var(--amber)}
 .ok{color:var(--good)}.bad{color:var(--bad)}
+.mats{border-collapse:collapse;margin-top:6px;font-size:16px}
+.mats th{font-weight:400;color:var(--slag);font-size:14px;text-align:right;padding:2px 0 4px 18px}
+.mats td{text-align:right;padding:3px 0 3px 18px;border-top:1px solid var(--iron)}
+.mats td:first-child{text-align:left;padding-left:0}
+.mats td:last-child{font-weight:700}
 .goal{font-weight:700;text-decoration:underline;text-underline-offset:3px}
 
 details.how{border-top:1px solid var(--iron);padding-top:16px}
@@ -117,19 +139,37 @@ details.how p{margin:12px 0;font-size:17px;max-width:60ch}
     <p class="lede">Every roll at the Forge of Potential is fixed by your character's name. Type it in to see which weapons and armour will take your idols furthest.</p>
   </header>
 
+  <div class="who">
   <label class="field" for="cname">
-    <span>Character name, exactly as in game, capitals included</span>
+    <span>Your character, capitals included</span>
     <input id="cname" autocomplete="off" spellcheck="false" placeholder="Thor">
   </label>
+
+  <label class="field" for="friends">
+    <span>Friends at the same Forge, if any</span>
+    <input id="friends" autocomplete="off" spellcheck="false" placeholder="Sigrid, Ragnar">
+  </label>
+  </div>
 
   <div class="field">
     <span id="agesLabel">Age</span>
     <div class="ages" id="ages" role="group" aria-labelledby="agesLabel"></div>
   </div>
 
+  <div class="finder">
+    <label class="field" for="q">
+      <span>Find an item</span>
+      <input id="q" type="search" autocomplete="off" spellcheck="false" placeholder="Spear">
+    </label>
+    <label class="field" for="aim">
+      <span>Aim for level</span>
+      <select id="aim"></select>
+    </label>
+  </div>
+
   <section class="results" id="out" hidden>
     <h2 id="heading"></h2>
-    <p>The number is the level each item reaches from level 3 before anything breaks. Open an item to aim higher.</p>
+    <p id="intro"></p>
     <div id="list"></div>
   </section>
 
@@ -138,6 +178,7 @@ details.how p{margin:12px 0;font-size:17px;max-width:60ch}
     <p>Every Forge of Potential attempt is decided in advance. Each item and level step has its own roll, and the first roll comes from your character name. An attempt, whether it works or not, moves that step on to its next roll. Reloading doesn't change anything.</p>
     <p>A roll of 0.65 or less succeeds. A failure destroys the item and gives back 35% of its materials. These values come from the game data and are the same for every idol.</p>
     <p>On a first run almost nothing passes level 7. The game's random numbers for neighbouring levels are related, so five successes in a row is very rare. Higher levels always cost some broken items.</p>
+    <p>With friends, each character has their own rolls, and only the character pressing the button counts. Who crafted the item doesn't matter. The route names who should do each step. Playing together on a server hasn't been tested yet, so check the first prediction on a cheap upgrade.</p>
     <p>The lists assume this character hasn't used idols on these items yet, and that you bring each new copy of an item to level 3 yourself. If an item breaks, craft a new one, bring it to level 3 and follow the next run. Rolls belong to the item type, not the single item, so a new copy carries on where the old one stopped.</p>
   </details>
 </main>
@@ -154,6 +195,8 @@ details.how p{margin:12px 0;font-size:17px;max-width:60ch}
   }
   // Idol tier from the game's recipes. Each entry is [name, internal name, W(eapon)/S(hield)/A(rmour)]
   var AGES=[[["Club","Club","W"],["Crude Bow","Bow","W"],["Flint Knife","KnifeFlint","W"],["Flint Spear","SpearFlint","W"],["Stagbreaker","SledgeStagbreaker","W"],["Stone Axe","AxeStone","W"],["Wood Shield","ShieldWood","S"],["Wood Tower Shield","ShieldWoodTower","S"],["Deer Hide Cape","CapeDeerHide","A"],["Leather Helmet","HelmetLeather","A"],["Leather Trousers","ArmorLeatherLegs","A"],["Leather Tunic","ArmorLeatherChest","A"],["Rag Trousers","ArmorRagsLegs","A"],["Rag Tunic","ArmorRagsChest","A"]],[["Bronze Atgeir","AtgeirBronze","W"],["Bronze Mace","MaceBronze","W"],["Bronze Spear","SpearBronze","W"],["Bronze Sword","SwordBronze","W"],["Copper Knife","KnifeCopper","W"],["Finewood Bow","BowFineWood","W"],["Flint Axe","AxeFlint","W"],["Nord Atgeir","AtgeirGold","W"],["Paws of the Bear","FistBjornClaw","W"],["Voidcaller","KnifeVoid","W"],["Bone Tower Shield","ShieldBoneTower","S"],["Bronze Buckler","ShieldBronzeBuckler","S"],["Bronze Helmet","HelmetBronze","A"],["Bronze Plate Leggings","ArmorBronzeLegs","A"],["Bronze Plate Tunic","ArmorBronzeChest","A"],["Cape of Oden","CapeOdin","A"],["Hood of Oden","HelmetOdin","A"],["Loincloth of the Bear","ArmorBerserkerLegs","A"],["Patterns of the Bear","ArmorBerserkerChest","A"],["Troll Hide Cape","CapeTrollHide","A"],["Troll Leather Hood","HelmetTrollLeather","A"],["Troll Leather Trousers","ArmorTrollLeatherLegs","A"],["Troll Leather Tunic","ArmorTrollLeatherChest","A"]],[["Ancient Bark Spear","SpearElderbark","W"],["Battleaxe","Battleaxe","W"],["Bronze Axe","AxeBronze","W"],["Draugr Fang","BowDraugrFang","W"],["Early Axes","AxeEarly","W"],["Huntsman Bow","BowHuntsman","W"],["Iron Atgeir","AtgeirIron","W"],["Iron Mace","MaceIron","W"],["Iron Sledge","SledgeIron","W"],["Iron Sword","SwordIron","W"],["Nord Knucklechains","FistGold","W"],["Banded Shield","ShieldBanded","S"],["Iron Buckler","ShieldIronBuckler","S"],["Iron Shield","ShieldIronSquare","S"],["Iron Tower Shield","ShieldIronTower","S"],["Shield of Roots","ShieldRoots","S"],["Iron Greaves","ArmorIronLegs","A"],["Iron Helmet","HelmetIron","A"],["Iron Scale Mail","ArmorIronChest","A"],["Root Harnesk","ArmorRootChest","A"],["Root Leggings","ArmorRootLegs","A"],["Root Mask","HelmetRoot","A"]],[["Abyssal Razor","KnifeChitin","W"],["Crystal Battleaxe","BattleaxeCrystal","W"],["Fang Spear","SpearWolfFang","W"],["Flesh Rippers","FistFenrirClaw","W"],["Frostner","MaceSilver","W"],["Iron Axe","AxeIron","W"],["Silver Knife","KnifeSilver","W"],["Silver Sword","SwordSilver","W"],["Serpent Scale Shield","ShieldSerpentscale","S"],["Silver Shield","ShieldSilver","S"],["Drake Helmet","HelmetDrake","A"],["Fenris Coat","ArmorFenringChest","A"],["Fenris Hood","HelmetFenring","A"],["Fenris Leggings","ArmorFenringLegs","A"],["Wolf Fur Cape","CapeWolf","A"],["Wolf Hide Chestpiece","ArmorWolfChest","A"],["Wolf Hide Trousers","ArmorWolfLegs","A"]],[["Black Metal Atgeir","AtgeirBlackmetal","W"],["Black Metal Axe","AxeBlackMetal","W"],["Black Metal Battleaxe","BattleaxeBlackmetal","W"],["Black Metal Knife","KnifeBlackMetal","W"],["Black Metal Sword","SwordBlackmetal","W"],["Frostfire Axe","AxeGold_FrostFire","W"],["Jotun Bane","AxeJotunBane","W"],["Nord Axe","AxeGold","W"],["Porcupine","MaceNeedle","W"],["Skoll and Hati","KnifeSkollAndHati","W"],["Vilebone Maulclaws","FistBjornUndeadClaw","W"],["Black Metal Shield","ShieldBlackmetal","S"],["Black Metal Tower Shield","ShieldBlackmetalTower","S"],["Linen Cape","CapeLinen","A"],["Lox Cape","CapeLox","A"],["Lox Fur Hood","HelmetLox","A"],["Lox Fur Jacket","ArmorLoxChest","A"],["Lox Fur Trousers","ArmorLoxLegs","A"],["Padded Cuirass","ArmorPaddedCuirass","A"],["Padded Greaves","ArmorPaddedGreaves","A"],["Padded Helmet","HelmetPadded","A"],["Vilebone Cage","ArmorBerserkerUndeadChest","A"],["Vilebone Drapes","ArmorBerserkerUndeadLegs","A"],["Vilebone Visage","HelmetBerserkerUndead","A"]],[["Arbalest","CrossbowArbalest","W"],["Carapace Spear","SpearCarapace","W"],["Dead Raiser","StaffSkeleton","W"],["Demolisher","SledgeDemolisher","W"],["Himminafl","AtgeirHimminAfl","W"],["Krom","THSwordKrom","W"],["Mistwalker","SwordMistwalker","W"],["Skull Splittur","BattleaxeSkullSplittur","W"],["Spinesnap","BowSpineSnap","W"],["Splitnir","SpearSplitner","W"],["Splitnir the Bleeding","SpearSplitner_Blood","W"],["Splitnir the Primal","SpearSplitner_Nature","W"],["Splitnir the Storming","SpearSplitner_Lightning","W"],["Staff of Embers","StaffFireball","W"],["Staff of Frost","StaffIceShards","W"],["Staff of Protection","StaffShield","W"],["Carapace Buckler","ShieldCarapaceBuckler","S"],["Carapace Shield","ShieldCarapace","S"],["Carapace Breastplate","ArmorCarapaceChest","A"],["Carapace Greaves","ArmorCarapaceLegs","A"],["Carapace Helmet","HelmetCarapace","A"],["Eitr-weave Hood","HelmetMage","A"],["Eitr-weave Robe","ArmorMageChest","A"],["Eitr-weave Trousers","ArmorMageLegs","A"],["Feather Cape","CapeFeather","A"],["Headdress of the Bear","HelmetBerserkerHood","A"]],[["Ash Fang","BowAshlands","W"],["Berserkir Axes","AxeBerzerkr","W"],["Bleeding Berserkir Axes","AxeBerzerkrBlood","W"],["Blood Fang","BowAshlandsBlood","W"],["Bloodgeon","MaceEldnerBlood","W"],["Brutal Slayer","THSwordSlayerBlood","W"],["Dundr","StaffLightning","W"],["Dyrnwyn","SwordDyrnwyn","W"],["Flametal Mace","MaceEldner","W"],["Klossen","MaceEldnerNature","W"],["Nidhögg","SwordNiedhogg","W"],["Nidhögg the Bleeding","SwordNiedhoggBlood","W"],["Nidhögg the Primal","SwordNiedhoggNature","W"],["Nidhögg the Thundering","SwordNiedhoggLightning","W"],["Primal Berserkir Axes","AxeBerzerkrNature","W"],["Primal Slayer","THSwordSlayerNature","W"],["Ripper","CrossbowRipper","W"],["Root Fang","BowAshlandsRoot","W"],["Root Ripper","CrossbowRipperNature","W"],["Scourging Slayer","THSwordSlayerLightning","W"],["Slayer","THSwordSlayer","W"],["Staff of Fracturing","StaffClusterbomb","W"],["Staff of the Wild","StaffGreenRoots","W"],["Storm Fang","BowAshlandsStorm","W"],["Storm Ripper","CrossbowRipperLightning","W"],["Storm Star","MaceEldnerLightning","W"],["Thundering Berserkir Axes","AxeBerzerkrLightning","W"],["Trollstav","StaffRedTroll","W"],["Wound Ripper","CrossbowRipperBlood","W"],["Flametal Shield","ShieldFlametal","S"],["Flametal Tower Shield","ShieldFlametalTower","S"],["Ashen Cape","CapeAsh","A"],["Asksvin Cloak","CapeAsksvin","A"],["Breastplate of Ask","ArmorAshlandsMediumChest","A"],["Flametal Breastplate","ArmorFlametalChest","A"],["Flametal Greaves","ArmorFlametalLegs","A"],["Flametal Helmet","HelmetFlametal","A"],["Hood of Ask","HelmetAshlandsMediumHood","A"],["Hood of Embla","HelmetMage_Ashlands","A"],["Robes of Embla","ArmorMageChest_Ashlands","A"],["Trousers of Ask","ArmorAshlandsMediumlegs","A"],["Trousers of Embla","ArmorMageLegs_Ashlands","A"]],[["Echo Spike","StaffOrbofAhri","W"],["Frostfire Atgeir","AtgeirGold_FrostFire","W"],["Frostfire Bow","BowGold_FrostFire","W"],["Frostfire Crossbow","CrossbowGold_FrostFire","W"],["Frostfire Dagger","KnifeGold_FrostFire","W"],["Frostfire Greataxe","BattleaxeGold_FrostFire","W"],["Frostfire Greatsword","THSwordGold_FrostFire","W"],["Frostfire Knucklechains","FistGold_FrostFire","W"],["Frostfire Mace","MaceGold_FrostFire","W"],["Frostfire Sledge","SledgeGold_FrostFire","W"],["Frostfire Spear","SpearGold_FrostFire","W"],["Frostfire Sword","SwordGold_FrostFire","W"],["Lightning Strike","StaffThunderBlood","W"],["Nord Bow","BowGold","W"],["Nord Crossbow","CrossbowGold","W"],["Nord Dagger","KnifeGold","W"],["Nord Greataxe","BattleaxeGold","W"],["Nord Greatsword","THSwordGold","W"],["Nord Mace","MaceGold","W"],["Nord Sledge","SledgeGold","W"],["Nord Spear","SpearGold","W"],["Nord Sword","SwordGold","W"],["Northern Vengeance","StaffFrostOrbs","W"],["Spirit Caller","StaffSpiritCaller","W"],["Thunderblood Atgeir","AtgeirGold_BloodLightning","W"],["Thunderblood Axe","AxeGold_BloodLightning","W"],["Thunderblood Bow","BowGold_BloodLightning","W"],["Thunderblood Crossbow","CrossbowGold_BloodLightning","W"],["Thunderblood Dagger","KnifeGold_BloodLightning","W"],["Thunderblood Greataxe","BattleaxeGold_BloodLightning","W"],["Thunderblood Greatsword","THSwordGold_BloodLightning","W"],["Thunderblood Knucklechains","FistGold_BloodLightning","W"],["Thunderblood Mace","MaceGold_BloodLightning","W"],["Thunderblood Sledge","SledgeGold_BloodLightning","W"],["Thunderblood Spear","SpearGold_BloodLightning","W"],["Thunderblood Sword","SwordGold_BloodLightning","W"],["Nord Buckler","ShieldGoldBuckler","S"],["Nord Greatshield","ShieldGoldTower","S"],["Nord Shield","ShieldGold","S"],["Breastplate of the Protector","ArmorDeepNorthHeavyChest","A"],["Cape of the Caller","CapeDeepNorthMage","A"],["Chestpiece of the Vanguard","ArmorDeepNorthMediumChest","A"],["Headdress of the Caller","HelmetDNMage","A"],["Hood of the Vanguard","HelmetDNMediumHood","A"],["Moose Hide Cape","CapeDeepNorth","A"],["Robes of the Caller","ArmorDeepNorthMageChest","A"],["Trousers of the Caller","ArmorDeepNorthMagelegs","A"],["Trousers of the Protector","ArmorDeepNorthHeavylegs","A"],["Trousers of the Vanguard","ArmorDeepNorthMediumlegs","A"]]];
+  // Crafting materials per item from the game's recipes, idols left out: [name, amount to craft, amount per level, returned on a break (1/0)]
+  var MATS={"SledgeWood":[["Wood",5,1,1],["Finewood",3,10,1],["Corewood",2,2,1]],"HelmetCarapace":[["Carapace",16,8,1],["Scale Hide",3,1,1],["Mandible",2,0,1],["Refined Eitr",4,2,1]],"MaceBronze":[["Wood",4,0,1],["Bronze",8,4,1],["Leather Scraps",3,0,1]],"SwordWood":[["Wood",5,1,1],["Finewood",3,10,1],["Corewood",2,2,1]],"KnifeGold":[["Bloodgold",20,10,1],["Mould: Nord Dagger",1,0,1],["Timberwood",10,5,1]],"ShieldGold":[["Bloodgold",15,8,1],["Mould: Nord Shield",1,0,1],["Timberwood",10,5,1]],"ShieldIronTower":[["Finewood",15,10,1],["Iron",10,5,1]],"CrossbowArbalest":[["Wood",10,5,1],["Iron",8,4,1],["Root",4,1,1]],"SwordGold":[["Bloodgold",20,10,1],["Mould: Nord Sword",1,0,1],["Timberwood",10,5,1]],"FistGold_FrostFire":[["Nord Knucklechains",1,0,0],["Bloodgold",20,10,1],["Frostfire Essence",1,1,0]],"CapeWolf":[["Wolf Pelt",6,4,1],["Silver",4,2,1],["Wolf Trophy",1,0,1]],"KnifeVoid":[["Ectoplasm",1,0,1],["Ectoplasm",8,10,1],["Bloodgold",2,10,1]],"BattleaxeSkullSplittur":[["Iron",30,15,1],["Yggdrasil Wood",15,5,1],["Refined Eitr",10,0,1]],"CapeLox":[["Lox Pelt",6,2,1],["Silver",2,0,1]],"ArmorLeatherChest":[["Deer Hide",6,6,1],["Bone Fragments",0,5,1]],"BattleaxeBlackmetal":[["Finewood",10,0,1],["Black Metal",30,15,1],["Linen Thread",5,5,1]],"SwordGold_FrostFire":[["Nord Sword",1,0,0],["Bloodgold",20,10,1],["Frostfire Essence",1,1,0]],"SpearSplitner_Blood":[["Splitnir",1,0,0],["Flametal",6,6,1],["Bloodstone",1,1,0]],"THSwordWood":[["Wood",5,1,1],["Finewood",3,10,1],["Corewood",2,2,1]],"ShieldWoodTower":[["Wood",10,5,1],["Leather Scraps",6,3,1]],"SpearSplitner_Nature":[["Splitnir",1,0,0],["Flametal",6,6,1],["Jade",1,1,0]],"BowDraugrFang":[["Ancient Bark",10,5,1],["Silver",20,10,1],["Deer Hide",2,2,1],["Guck",10,2,1]],"AxeBerzerkrNature":[["Berserkir Axes",1,0,0],["Flametal",5,5,1],["Jade",1,1,0]],"Club":[["Wood",6,0,1],["Bone Fragments",0,5,1]],"THSwordKrom":[["Iron",30,15,1],["Bronze",20,10,1],["Scale Hide",5,5,1]],"CrossbowRipperBlood":[["Ripper",1,0,0],["Flametal",8,8,1],["Bloodstone",1,1,0]],"MaceIron":[["Wood",4,0,1],["Iron",20,10,1],["Leather Scraps",3,0,1]],"ArmorDeepNorthHeavylegs":[["Bloodgold",20,15,1],["Mould: Trousers of the Protector",1,0,1],["Moose Hide",8,3,1],["Leather Straps",4,3,1]],"THSwordSlayerBlood":[["Slayer",1,0,0],["Flametal",15,15,1],["Bloodstone",1,1,0]],"HelmetRoot":[["Root",10,2,1],["Ancient Bark",10,5,1],["Leather Scraps",4,0,1]],"SwordBronze":[["Wood",2,1,1],["Bronze",8,4,1],["Leather Scraps",2,1,1]],"BattleaxeCrystal":[["Ancient Bark",40,5,1],["Silver",30,15,1],["Crystal",10,0,1]],"KnifeSkollAndHati":[["Finewood",4,0,1],["Iron",10,4,1],["Black Metal",10,4,1]],"BowAshlandsRoot":[["Ash Fang",1,0,0],["Flametal",5,5,1],["Jade",1,1,0]],"StaffSkeleton":[["Bone Fragments",10,5,1],["Refined Eitr",16,8,1],["Skeleton Trophy",4,2,1]],"ShieldBronzeBuckler":[["Bronze",10,5,1],["Wood",4,1,1]],"ArmorRagsLegs":[["Leather Scraps",5,5,1]],"ArmorAshlandsMediumlegs":[["Linen Thread",15,10,1],["Lox Pelt",4,2,1],["Asksvin Hide",10,5,1]],"ArmorDeepNorthMageChest":[["Bloodgold",6,3,1],["Mould: Robes of the Caller",1,0,1],["Moose Hide",6,3,1],["Nornathread",5,3,1]],"MaceGold_FrostFire":[["Nord Mace",1,0,0],["Bloodgold",20,10,1],["Frostfire Essence",1,1,0]],"ArmorTrollLeatherChest":[["Troll Hide",5,2,1]],"StaffLightning":[["Ashwood",10,5,1],["Flametal",4,2,1],["Celestial Feather",3,3,1],["Bloodstone",1,1,0]],"SpearGold_BloodLightning":[["Nord Spear",1,0,0],["Bloodgold",20,10,1],["Thunderblood Essence",1,1,0]],"StaffThunderBlood":[["Bloodgold",10,5,1],["Nornathread",5,2,1],["Thunderblood Essence",1,1,0]],"StaffSpiritCaller":[["Frozen Branch",8,4,1],["Nornathread",5,2,1],["Moose Trophy",1,0,1]],"CrossbowRipperLightning":[["Ripper",1,0,0],["Flametal",8,8,1],["Iolite",1,1,0]],"ArmorLeatherLegs":[["Deer Hide",6,6,1],["Bone Fragments",0,5,1]],"ArmorLoxChest":[["Lox Pelt",5,6,1],["Bone Fragments",8,4,1],["Root",2,1,1]],"PickaxeIron":[["Corewood",3,1,1],["Iron",20,10,1]],"CapeDeerHide":[["Deer Hide",4,4,1],["Bone Fragments",5,5,1]],"MaceWood":[["Wood",5,1,1],["Finewood",3,10,1],["Corewood",2,2,1]],"ArmorBronzeLegs":[["Bronze",5,3,1],["Deer Hide",2,0,1]],"StaffIceShards":[["Yggdrasil Wood",20,10,1],["Freeze Gland",4,2,1],["Refined Eitr",16,8,1]],"Bow":[["Wood",10,5,1],["Leather Scraps",8,4,1],["Deer Hide",0,1,1]],"FistGold_BloodLightning":[["Nord Knucklechains",1,0,0],["Bloodgold",20,10,1],["Thunderblood Essence",1,1,0]],"SpearGold_FrostFire":[["Nord Spear",1,0,0],["Bloodgold",20,10,1],["Frostfire Essence",1,1,0]],"ArmorTrollLeatherLegs":[["Troll Hide",5,2,1]],"HelmetMage_Ashlands":[["Linen Thread",16,8,1],["Refined Eitr",15,5,1],["Asksvin Hide",2,0,1]],"ArmorCarapaceLegs":[["Carapace",20,10,1],["Scale Hide",3,1,1],["Iron",5,0,1],["Refined Eitr",4,2,1]],"ShieldFlametal":[["Ashwood",10,10,1],["Flametal",8,4,1],["Asksvin Hide",2,2,1]],"ArmorMageLegs":[["Linen Thread",20,10,1],["Refined Eitr",20,5,1],["Scale Hide",10,0,1]],"SpearBronze":[["Wood",5,3,1],["Bronze",6,4,1],["Deer Hide",2,1,1]],"AtgeirGold":[["Bloodgold",20,10,1],["Mould: Nord Atgeir",1,0,1],["Timberwood",10,5,1]],"MaceEldnerLightning":[["Flametal Mace",1,0,0],["Flametal",8,8,1],["Iolite",1,1,0]],"AxeWood":[["Wood",5,1,1],["Finewood",3,10,1],["Corewood",2,2,1]],"StaffGreenRoots":[["Ashwood",15,5,1],["Fiddlehead",10,2,1],["Celestial Feather",3,3,1],["Jade",1,1,1]],"BowAshlandsStorm":[["Ash Fang",1,0,0],["Flametal",5,5,1],["Iolite",1,1,0]],"HelmetDNMediumHood":[["Seal Pelt",5,3,1],["Mould: Hood of the Vanguard",1,0,1],["Moose Hide",5,3,1],["Moose Sinew",1,1,1]],"AtgeirWood":[["Wood",5,1,1],["Finewood",3,10,1],["Corewood",2,2,1]],"ArmorBerserkerLegs":[["Bear Hide",5,2,1],["Blueberries",4,1,1]],"SledgeGold_BloodLightning":[["Nord Sledge",1,0,0],["Bloodgold",20,10,1],["Thunderblood Essence",1,1,0]],"AxeFlint":[["Wood",4,0,1],["Flint",6,3,1],["Leather Scraps",0,2,1]],"CrossbowGold_FrostFire":[["Nord Crossbow",1,0,0],["Bloodgold",20,10,1],["Frostfire Essence",1,1,0]],"SwordGold_BloodLightning":[["Nord Sword",1,0,0],["Bloodgold",20,10,1],["Thunderblood Essence",1,1,0]],"HelmetTrollLeather":[["Troll Hide",5,2,1],["Bone Fragments",3,1,1]],"SpearWood":[["Wood",5,1,1],["Finewood",3,10,1],["Corewood",2,2,1]],"AxeEarly":[["Wood",4,2,1],["Leather Scraps",0,2,1],["Curious Axe Head",1,0,1],["Mysterious Axe Head",1,0,1]],"AxeStone":[["Wood",5,0,1],["Stone",4,2,1]],"SpearSplitner_Lightning":[["Splitnir",1,0,0],["Flametal",6,6,1],["Iolite",1,1,0]],"ShieldGoldBuckler":[["Bloodgold",10,5,1],["Mould: Nord Buckler",1,0,1],["Timberwood",10,5,1]],"AtgeirBronze":[["Wood",10,0,1],["Bronze",8,4,1],["Leather Scraps",2,0,1]],"HelmetMage":[["Linen Thread",16,8,1],["Refined Eitr",15,5,1],["Iron",2,0,1]],"ShieldGoldTower":[["Bloodgold",20,10,1],["Mould: Nord Greatshield",1,0,1],["Timberwood",20,10,1]],"AtgeirBlackmetal":[["Finewood",10,0,1],["Black Metal",30,15,1],["Linen Thread",5,5,1]],"SwordSilver":[["Wood",2,1,1],["Silver",40,20,1],["Leather Scraps",3,1,1],["Iron",5,3,1]],"KnifeCopper":[["Wood",2,0,1],["Copper",8,4,1],["Greydwarf Eye",0,8,1]],"ShieldWood":[["Wood",10,5,1],["Resin",4,2,1],["Leather Scraps",4,2,1]],"BattleaxeGold":[["Bloodgold",20,10,1],["Mould: Nord Greataxe",1,0,1],["Timberwood",10,5,1]],"MaceNeedle":[["Finewood",5,0,1],["Iron",20,2,1],["Needle",5,2,1],["Linen Thread",10,0,1]],"CrossbowGold_BloodLightning":[["Nord Crossbow",1,0,0],["Bloodgold",20,10,1],["Thunderblood Essence",1,1,0]],"HelmetBerserkerHood":[["Bear Hide",5,2,1],["Bear Trophy",1,0,1]],"ShieldCarapaceBuckler":[["Carapace",16,8,1],["Scale Hide",3,3,1],["Refined Eitr",10,3,1]],"AxeBerzerkrLightning":[["Berserkir Axes",1,0,0],["Flametal",5,5,1],["Iolite",1,1,0]],"HelmetLeather":[["Deer Hide",6,6,1],["Bone Fragments",0,5,1]],"SledgeGold_FrostFire":[["Nord Sledge",1,0,0],["Bloodgold",20,10,1],["Frostfire Essence",1,1,0]],"ShieldBlackmetalTower":[["Finewood",15,10,1],["Black Metal",10,4,1],["Chain",7,2,1]],"StaffFrostOrbs":[["Ice",10,5,1],["Nornathread",5,2,1],["Hexen Trophy",1,0,1]],"HelmetOdin":[["Leather Scraps",10,5,1],["Coal",4,2,1]],"ArmorDeepNorthHeavyChest":[["Bloodgold",20,15,1],["Mould: Breastplate of the Protector",1,0,1],["Moose Hide",8,3,1],["Leather Straps",4,3,1]],"StaffClusterbomb":[["Charred Bone",15,5,1],["Ashwood",5,3,1],["Proustite Powder",8,1,1]],"ArmorWolfLegs":[["Silver",20,5,1],["Wolf Pelt",5,2,1],["Wolf Fang",4,1,1]],"ShieldCarapace":[["Carapace",20,10,1],["Scale Hide",3,3,1],["Refined Eitr",10,3,1]],"ArmorAshlandsMediumChest":[["Linen Thread",15,10,1],["Lox Pelt",4,2,1],["Asksvin Hide",10,5,1]],"AxeIron":[["Wood",4,0,1],["Iron",20,10,1],["Leather Scraps",2,1,1]],"ArmorBronzeChest":[["Bronze",5,3,1],["Deer Hide",2,0,1]],"PickaxeBlackMetal":[["Yggdrasil Wood",3,1,1],["Black Metal",25,15,1]],"ArmorRootLegs":[["Root",10,2,1],["Ancient Bark",10,5,1],["Deer Hide",2,0,1]],"ArmorBerserkerChest":[["Bear Hide",5,2,1],["Bear Paw",2,0,1],["Blueberries",4,1,1]],"AxeBerzerkrBlood":[["Berserkir Axes",1,0,0],["Flametal",5,5,1],["Bloodstone",1,1,0]],"ArmorCarapaceChest":[["Carapace",20,10,1],["Scale Hide",3,1,1],["Iron",5,0,1],["Refined Eitr",4,2,1]],"KnifeWood":[["Wood",5,1,1],["Finewood",3,10,1],["Corewood",2,2,1]],"ArmorDeepNorthMediumlegs":[["Bloodgold",12,6,1],["Mould: Trousers of the Vanguard",1,0,1],["Elaking Hair Bundle",8,4,1],["Seal Pelt",4,2,1]],"CapeAsksvin":[["Asksvin Hide",6,2,1],["Morgen Sinew",2,0,1]],"ArmorBerserkerUndeadLegs":[["Bear Hide",10,5,1],["Vile Ribcage",1,1,1],["Linen Thread",4,1,1]],"CapeDeepNorthMage":[["Seal Pelt",6,3,1],["Nornathread",2,1,1],["Bloodgold",5,2,1],["Refined Eitr",15,5,1]],"ArmorBerserkerUndeadChest":[["Bear Hide",4,2,1],["Vile Ribcage",3,1,1],["Linen Thread",4,1,1]],"ArmorMageChest_Ashlands":[["Linen Thread",20,10,1],["Refined Eitr",20,5,1],["Asksvin Hide",10,0,1],["Flametal",5,2,1]],"ArmorMageChest":[["Linen Thread",20,10,1],["Refined Eitr",20,5,1],["Feathers",10,0,1],["Scale Hide",5,0,1]],"SwordNiedhoggLightning":[["Nidhögg",1,0,0],["Flametal",6,6,1],["Iolite",1,1,0]],"ArmorPaddedCuirass":[["Iron",10,3,1],["Linen Thread",20,10,1]],"SpearFlint":[["Wood",5,3,1],["Flint",10,5,1],["Leather Scraps",2,1,1]],"THSwordGold_BloodLightning":[["Nord Greatsword",1,0,0],["Bloodgold",20,10,1],["Thunderblood Essence",1,1,0]],"CrossbowRipperNature":[["Ripper",1,0,0],["Flametal",8,8,1],["Jade",1,1,0]],"AtgeirIron":[["Wood",10,0,1],["Iron",30,15,1],["Leather Scraps",2,1,1]],"ShieldBanded":[["Finewood",10,10,1],["Iron",8,4,1]],"THSwordSlayer":[["Flametal",30,15,1],["Asksvin Hide",5,5,1],["Morgen Sinew",3,3,1]],"ShieldSerpentscale":[["Finewood",10,10,1],["Iron",4,2,1],["Serpent Scale",8,4,1]],"BowSpineSnap":[["Finewood",10,5,1],["Bone Fragments",40,20,1],["Refined Eitr",10,0,1]],"SpearGold":[["Bloodgold",20,10,1],["Mould: Nord Spear",1,0,1],["Timberwood",10,5,1]],"BattleaxeGold_BloodLightning":[["Nord Greataxe",1,0,0],["Bloodgold",20,10,1],["Thunderblood Essence",1,1,0]],"CapeFeather":[["Feathers",10,2,1],["Scale Hide",5,5,1],["Refined Eitr",20,3,1]],"THSwordSlayerLightning":[["Slayer",1,0,0],["Flametal",15,15,1],["Iolite",1,1,0]],"HelmetBronze":[["Bronze",5,3,1],["Deer Hide",2,0,1]],"HelmetPadded":[["Iron",10,5,1],["Linen Thread",15,10,1]],"CrossbowRipper":[["Ashwood",10,5,1],["Flametal",8,4,1],["Morgen Sinew",2,1,1],["Bonemaw Tooth",4,4,1]],"KnifeGold_BloodLightning":[["Nord Dagger",1,0,0],["Bloodgold",20,10,1],["Thunderblood Essence",1,1,0]],"SpearWolfFang":[["Ancient Bark",10,5,1],["Wolf Fang",4,2,1],["Leather Scraps",2,1,1],["Silver",2,1,1]],"SpearElderbark":[["Troll Hide",4,1,1],["Iron",10,5,1],["Ancient Bark",10,5,1]],"AxeBlackMetal":[["Finewood",6,0,1],["Black Metal",20,10,1],["Linen Thread",5,5,1]],"ShieldFlametalTower":[["Ashwood",15,10,1],["Flametal",10,4,1],["Asksvin Hide",5,2,1]],"ArmorFlametalChest":[["Flametal",20,10,1],["Asksvin Hide",3,1,1],["Charred Bone",5,0,1],["Morgen Heart",1,0,1]],"FistBjornClaw":[["Bear Hide",2,2,1],["Bear Paw",2,0,1],["Leather Scraps",4,2,1]],"AxeBerzerkr":[["Charred Bone",15,0,1],["Flametal",24,15,1],["Asksvin Hide",3,1,1]],"KnifeGold_FrostFire":[["Nord Dagger",1,0,0],["Bloodgold",20,10,1],["Frostfire Essence",1,1,0]],"HelmetIron":[["Iron",20,5,1],["Deer Hide",2,0,1]],"HelmetLox":[["Lox Pelt",4,2,1],["Bone Fragments",4,2,1],["Writhan Roots",2,1,1]],"ShieldIronBuckler":[["Iron",10,5,1],["Ancient Bark",4,1,1]],"ArmorDeepNorthMagelegs":[["Bloodgold",6,3,1],["Mould: Trousers of the Caller",1,0,1],["Moose Hide",6,3,1],["Nornathread",5,3,1]],"KnifeFlint":[["Wood",2,0,1],["Flint",4,2,1],["Leather Scraps",2,0,1]],"HelmetDrake":[["Silver",20,5,1],["Wolf Pelt",2,0,1],["Drake Trophy",2,0,1]],"ArmorDeepNorthMediumChest":[["Bloodgold",12,6,1],["Mould: Chestpiece of the Vanguard",1,0,1],["Elaking Hair Bundle",8,4,1],["Leather Straps",4,2,1]],"ArmorFenringChest":[["Fenris Hair",20,5,1],["Wolf Pelt",5,3,1],["Leather Scraps",10,4,1]],"ShieldRoots":[["Finewood",10,5,1],["Writhan Roots",1,2,1]],"MaceEldnerBlood":[["Flametal Mace",1,0,0],["Flametal",8,8,1],["Bloodstone",1,1,0]],"CapeDeepNorth":[["Moose Hide",6,3,1],["Moose Sinew",2,1,1],["Bloodgold",5,2,1]],"SledgeDemolisher":[["Yggdrasil Wood",10,2,1],["Iron",20,15,1],["Refined Eitr",10,2,1]],"SpearSplitner":[["Ashwood",10,5,1],["Flametal",6,6,1],["Asksvin Hide",2,1,1],["Bonemaw Tooth",3,3,1]],"AtgeirHimminAfl":[["Yggdrasil Wood",10,0,1],["Refined Eitr",15,15,1],["Silver",5,5,1],["Mandible",2,2,1]],"BattleaxeWood":[["Wood",5,1,1],["Finewood",3,10,1],["Corewood",2,2,1]],"THSwordSlayerNature":[["Slayer",1,0,0],["Flametal",15,15,1],["Jade",1,1,0]],"ShieldBlackmetal":[["Finewood",10,10,1],["Black Metal",8,4,1],["Chain",5,2,1]],"MaceGold_BloodLightning":[["Nord Mace",1,0,0],["Bloodgold",20,10,1],["Thunderblood Essence",1,1,0]],"BowHuntsman":[["Finewood",10,5,1],["Iron",20,10,1],["Feathers",10,5,1],["Deer Hide",2,2,1]],"CapeTrollHide":[["Troll Hide",10,5,1],["Bone Fragments",10,5,1]],"SledgeGold":[["Bloodgold",20,10,1],["Mould: Nord Sledge",1,0,1],["Timberwood",10,5,1]],"HelmetBerserkerUndead":[["Bear Hide",5,2,1],["Vile Trophy",1,0,1]],"THSwordGold":[["Bloodgold",20,10,1],["Mould: Nord Greatsword",1,0,1],["Frozen Branch",2,1,1]],"FistGold":[["Bloodgold",20,10,1],["Mould: Nord Knucklechains",1,0,1],["Timberwood",10,5,1]],"FistFenrirClaw":[["Fenris Hair",10,1,1],["Fenris Claw",6,1,1],["Silver",10,1,1]],"ArmorRagsChest":[["Leather Scraps",5,5,1]],"ArmorIronChest":[["Iron",20,5,1],["Deer Hide",2,0,1]],"CapeOdin":[["Leather Scraps",10,5,1],["Coal",4,2,1]],"ArmorRootChest":[["Root",10,2,1],["Ancient Bark",10,5,1],["Deer Hide",2,0,1]],"AxeGold_BloodLightning":[["Nord Axe",1,0,0],["Bloodgold",20,10,1],["Thunderblood Essence",1,1,0]],"KnifeBlackMetal":[["Finewood",4,0,1],["Black Metal",10,4,1],["Linen Thread",5,5,1]],"AxeGold":[["Bloodgold",20,10,1],["Mould: Nord Axe",1,0,1],["Timberwood",10,5,1]],"ArmorIronLegs":[["Iron",20,5,1],["Deer Hide",2,0,1]],"HelmetDNMage":[["Moose Sinew",2,1,1],["Mould: Headdress of the Caller",1,0,1],["Moose Trophy",1,1,1],["Nornathread",3,2,1]],"ShieldIronSquare":[["Finewood",10,10,1],["Iron",6,3,1]],"KnifeSilver":[["Wood",2,1,1],["Silver",10,5,1],["Leather Scraps",3,1,1],["Iron",2,1,1]],"BowFineWood":[["Finewood",10,5,1],["Corewood",10,5,1],["Deer Hide",2,2,1]],"ShieldSilver":[["Finewood",10,10,1],["Silver",8,4,1]],"THSwordGold_FrostFire":[["Nord Greatsword",1,0,0],["Bloodgold",20,10,1],["Frostfire Essence",1,1,0]],"BowGold_BloodLightning":[["Nord Bow",1,0,0],["Bloodgold",20,10,1],["Thunderblood Essence",1,1,0]],"KnifeChitin":[["Finewood",4,0,1],["Chitin",20,10,1],["Leather Scraps",2,0,1]],"StaffRedTroll":[["Charred Bone",15,5,1],["Troll Trophy",1,1,1],["Flametal",3,3,1],["Bloodstone",1,1,1]],"AtgeirGold_FrostFire":[["Nord Atgeir",1,0,0],["Bloodgold",20,10,1],["Frostfire Essence",1,1,0]],"ArmorLoxLegs":[["Lox Pelt",5,3,1],["Bone Fragments",8,4,1],["Root",2,1,1]],"SwordMistwalker":[["Finewood",3,0,1],["Iron",15,10,1],["Refined Eitr",10,5,1],["Wisp",3,1,1]],"AxeBronze":[["Wood",4,0,1],["Bronze",8,4,1],["Leather Scraps",2,1,1]],"CapeLinen":[["Linen Thread",20,4,1],["Silver",1,0,1]],"BowGold_FrostFire":[["Nord Bow",1,0,0],["Bloodgold",20,10,1],["Frostfire Essence",1,1,0]],"AtgeirGold_BloodLightning":[["Nord Atgeir",1,0,0],["Bloodgold",20,10,1],["Thunderblood Essence",1,1,0]],"HelmetFenring":[["Fenris Hair",20,5,1],["Wolf Pelt",2,4,1],["Cultist Trophy",1,0,1]],"MaceEldnerNature":[["Flametal Mace",1,0,0],["Flametal",8,8,1],["Jade",1,1,0]],"SpearCarapace":[["Yggdrasil Wood",10,5,1],["Carapace",4,4,1],["Mandible",2,1,1]],"Battleaxe":[["Ancient Bark",30,5,1],["Iron",35,15,1],["Leather Scraps",4,0,1]],"StaffShield":[["Yggdrasil Wood",20,10,1],["Blood Clot",4,2,1],["Refined Eitr",16,8,1]],"BattleaxeGold_FrostFire":[["Nord Greataxe",1,0,0],["Bloodgold",20,10,1],["Frostfire Essence",1,1,0]],"MaceEldner":[["Charred Bone",10,5,1],["Flametal",15,8,1],["Sulfur",5,3,1],["Asksvin Hide",3,2,1]],"SledgeIron":[["Ancient Bark",10,2,1],["Iron",30,15,1],["Ymir Flesh",4,2,1],["Draugr Elite Trophy",1,0,1]],"StaffOrbofAhri":[["Bloodgold",10,5,1],["Nornathread",4,2,1],["Frostfire Essence",1,1,1]],"PickaxeBronze":[["Corewood",3,1,1],["Bronze",10,5,1]],"ArmorFenringLegs":[["Fenris Hair",20,5,1],["Wolf Pelt",5,3,1],["Leather Scraps",10,4,1]],"BowAshlandsBlood":[["Ash Fang",1,0,0],["Flametal",5,5,1],["Bloodstone",1,1,0]],"ArmorWolfChest":[["Silver",20,5,1],["Wolf Pelt",5,2,1],["Chain",1,0,1]],"BowGold":[["Bloodgold",20,10,1],["Mould: Nord Bow",1,0,1],["Timberwood",10,5,1]],"MaceGold":[["Bloodgold",20,10,1],["Mould: Nord Mace",1,0,1],["Timberwood",10,5,1]],"SwordNiedhoggBlood":[["Nidhögg",1,0,0],["Flametal",6,6,1],["Bloodstone",1,1,0]],"BowAshlands":[["Ashwood",10,5,1],["Charred Bone",16,10,1],["Flametal",5,5,1],["Bonemaw Tooth",5,5,1]],"ShieldBoneTower":[["Wood",10,5,1],["Bone Fragments",10,5,1],["Skeleton Trophy",3,0,1]],"SwordNiedhogg":[["Charred Bone",3,0,1],["Flametal",12,10,1],["Asksvin Hide",2,2,1]],"SledgeStagbreaker":[["Corewood",20,5,1],["Deer Trophy",5,2,1],["Leather Scraps",2,1,1],["Bone Fragments",0,10,1]],"HelmetFlametal":[["Flametal",16,8,1],["Asksvin Hide",3,1,1],["Charred Bone",2,0,1],["Refined Eitr",4,2,1]],"SwordIron":[["Wood",2,1,1],["Iron",20,10,1],["Leather Scraps",3,2,1]],"StaffFireball":[["Yggdrasil Wood",20,10,1],["Surtling Core",4,2,1],["Refined Eitr",16,8,1]],"CrossbowGold":[["Bloodgold",20,10,1],["Mould: Nord Crossbow",1,0,1],["Timberwood",10,5,1]],"ArmorMageLegs_Ashlands":[["Linen Thread",20,10,1],["Refined Eitr",20,5,1],["Asksvin Hide",10,0,1]],"AxeGold_FrostFire":[["Nord Axe",1,0,0],["Bloodgold",20,10,1],["Frostfire Essence",1,1,0]],"ArmorPaddedGreaves":[["Iron",10,3,1],["Linen Thread",20,10,1]],"CapeAsh":[["Asksvin Hide",6,2,1],["Morgen Sinew",2,0,1],["Flametal",5,0,1]],"ArmorFlametalLegs":[["Flametal",20,10,1],["Asksvin Hide",3,1,1],["Charred Bone",5,0,1]],"MaceSilver":[["Ancient Bark",10,0,1],["Silver",30,15,1],["Ymir Flesh",5,0,1],["Freeze Gland",5,0,1]],"AxeJotunBane":[["Yggdrasil Wood",5,0,1],["Iron",15,10,1],["Bilebag",3,1,1],["Refined Eitr",10,1,1]],"SwordBlackmetal":[["Finewood",2,0,1],["Black Metal",20,10,1],["Linen Thread",5,5,1]],"FistBjornUndeadClaw":[["Bear Hide",2,1,1],["Vile Ribcage",2,1,1],["Black Metal",2,1,1],["Linen Thread",4,2,1]],"HelmetAshlandsMediumHood":[["Linen Thread",15,10,1],["Lox Pelt",4,2,1],["Asksvin Hide",10,5,1]],"SwordDyrnwyn":[["Dyrnwyn Hilt Fragment",1,0,1],["Dyrnwyn Blade Fragment",1,0,1],["Dyrnwyn Tip Fragment",1,0,1],["Flametal",20,10,1],["Bloodstone",1,1,1]],"SwordNiedhoggNature":[["Nidhögg",1,0,0],["Flametal",6,6,1],["Jade",1,1,0]]};
   // Named by material, with the biome for anyone who thinks in biomes
   var AGENAMES=[["Wood & flint","Meadows"],["Bronze","Black Forest"],["Iron","Swamp"],["Silver","Mountain"],["Black metal","Plains"],["Carapace","Mistlands"],["Flametal","Ashlands"],["Deep North","Deep North"]];
   var KINDS={W:"Weapon",S:"Shield",A:"Armour"};
@@ -164,48 +207,110 @@ details.how p{margin:12px 0;font-size:17px;max-width:60ch}
   function recall(k){try{return localStorage.getItem(k)||"";}catch(e){return "";}}
   function el(tag,cls,text){var e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e;}
   function heat(l){return "h"+Math.max(4,Math.min(8,l));}
+  function fold(s){return s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();}
+  // What reaching the aim level costs: nothing extra if the first run gets there, otherwise the totals from the plan
+  function cost(p,aim){
+    if(p.safe>=aim)return {lost:0,idols:aim-START};
+    return p.reached[aim]||null;
+  }
+  function costText(c,aim){
+    if(!c)return "Level "+aim+": over "+MAXLOST+" broken";
+    if(!c.lost)return "Level "+aim+": no breaks, "+c.idols+" idols";
+    return "Level "+aim+": "+c.lost+" broken, "+c.idols+" idols";
+  }
+  // Requirement.GetAmount from the game: level 1 is the craft, later levels scale the per-level amount
+  function amountAt(m,q){
+    if(q<=1)return m[1];
+    var f=q<4?q-1:4+(q-4)/2;
+    return Math.floor(Math.fround(f*m[2]));
+  }
+  // Materials for the whole route. Every copy is crafted and brought to level 3, and a break at level L gives back
+  // ceil(35% of (craft + upgrade to L)) of each recoverable material, as InventoryGui.DoCrafting does
+  function materials(item,breaks){
+    return (MATS[item]||[]).map(function(m){
+      var copy=m[1]+amountAt(m,2)+amountAt(m,3),back=0;
+      if(m[3])breaks.forEach(function(L){back+=Math.ceil(Math.fround(Math.fround(m[1]+amountAt(m,L))*Math.fround(0.35)));});
+      return {name:m[0],first:copy,rebuild:copy*breaks.length-back};
+    });
+  }
   function runes(s){return Array.prototype.map.call(s.toLowerCase(),function(c){return RUNES[c]||"";}).join("");}
 
-  // Play the item from level 3: on a failure the item breaks, a new copy starts again at 3, and every step tried moves on to its next roll
-  function plan(nm,item){
-    var hn=hash(nm),hi=hash(item),seeds={},lvl=START,idols=0,lost=0,runs=[[]],reached={},safe=null;
+  // Play the item from level 3: on a failure the item breaks, a new copy starts again at 3, and every step tried moves on to its next roll.
+  // With friends, each character has their own rolls. A step stays with whoever holds the item if their roll succeeds, to keep
+  // handovers few, otherwise it goes to the first one whose roll does. When nobody's does,
+  // the item breaks whoever tries, so the failure goes to someone whose roll after that succeeds, to set up the next copy
+  function plan(names,item){
+    var hi=hash(item),hs=names.map(hash),seeds=names.map(function(){return {};}),holder=0,lvl=START,idols=0,lost=0,runs=[[]],reached={},safe=null;
+    function peek(w,to,ahead){
+      if(!(to in seeds[w]))seeds[w][to]=(hs[w]+hi+to)>>>0;
+      var sd=seeds[w][to],r;
+      for(var k=0;k<=ahead;k++){r=rollNext(sd);sd=r.next;}
+      return Math.fround(r.roll)<=CHANCE;
+    }
     while(lvl<GOAL&&lost<MAXLOST){
-      var to=lvl+1;
-      if(!(to in seeds))seeds[to]=(hn+hi+to)>>>0;
-      var r=rollNext(seeds[to]);seeds[to]=r.next;idols++;
-      var ok=Math.fround(r.roll)<=CHANCE;
-      runs[runs.length-1].push({from:lvl,to:to,ok:ok});
+      var to=lvl+1,who=-1,w;
+      if(peek(holder,to,0))who=holder;
+      for(w=0;w<names.length&&who<0;w++)if(peek(w,to,0))who=w;
+      var ok=who>=0;
+      if(!ok){who=0;for(w=0;w<names.length;w++)if(peek(w,to,1)){who=w;break;}}
+      seeds[who][to]=rollNext(seeds[who][to]).next;idols++;
+      runs[runs.length-1].push({from:lvl,to:to,ok:ok,who:who});holder=who;
       if(ok){lvl=to;if(!reached[lvl])reached[lvl]={idols:idols,lost:lost,run:runs.length-1};}
       else{if(safe===null)safe=lvl;lost++;lvl=START;if(lost<MAXLOST)runs.push([]);}
     }
     if(safe===null)safe=lvl;
-    return {safe:safe,reached:reached,runs:runs};
+    return {item:item,names:names,safe:safe,reached:reached,runs:runs};
   }
+  // Your name first, then any friends, without repeats
+  function team(){
+    var out=[];
+    [$("cname").value].concat($("friends").value.split(",")).forEach(function(n){n=n.trim();if(n&&out.indexOf(n)<0)out.push(n);});
+    return out;
+  }
+  function together(names){return names.length<3?names.join(" and "):names.slice(0,-1).join(", ")+" and "+names[names.length-1];}
 
   function render(){
-    var nm=$("cname").value.trim(),age=recall("fo-age")||"all",box=$("list");
+    var nm=$("cname").value.trim(),names=team(),age=recall("fo-age")||"all",q=fold($("q").value.trim()),aim=+$("aim").value,box=$("list");
     $("runes").textContent=runes(nm);
     Array.prototype.forEach.call($("ages").children,function(b){b.setAttribute("aria-pressed",b.dataset.age===age?"true":"false");});
     $("out").hidden=!nm;box.innerHTML="";
     if(!nm)return;
-    $("heading").textContent="What "+nm+" can take highest"+(age==="all"?"":" in "+AGENAMES[+age][0]);
     var rows=[];
     AGES.forEach(function(xs,a){
       if(age!=="all"&&String(a)!==age)return;
-      xs.forEach(function(x){rows.push({x:x,age:a,p:plan(nm,x[1])});});
+      xs.forEach(function(x){
+        // Internal names carry the weapon type, so "spear" also finds Splitnir (SpearSplitner)
+        if(q&&fold(x[0]).indexOf(q)<0&&x[1].toLowerCase().indexOf(q)<0)return;
+        var p=plan(names,x[1]);rows.push({x:x,age:a,p:p,c:cost(p,aim)});
+      });
     });
+    var showAge=age==="all";
+    if(q){
+      $("heading").textContent="\u201c"+$("q").value.trim()+"\u201d for "+together(names)+(age==="all"?"":" in "+AGENAMES[+age][0]);
+      $("intro").textContent=rows.length?"Cheapest way to level "+aim+" first. The number is how far each item goes from level 3 before anything breaks.":"";
+      if(!rows.length){box.appendChild(el("p",null,"No weapon or armour matches \u201c"+$("q").value.trim()+"\u201d"+(age==="all"?".":" in "+AGENAMES[+age][0]+". Pick All ages to search everything.")));return;}
+      rows.sort(function(a,b){
+        if(!a.c||!b.c)return (a.c?0:1)-(b.c?0:1)||b.p.safe-a.p.safe;
+        return a.c.lost-b.c.lost||a.c.idols-b.c.idols||a.x[0].localeCompare(b.x[0]);
+      });
+      rows.forEach(function(r){box.appendChild(itemRow(r,showAge,aim));});
+      if(rows.length===1)box.firstChild.open=true;
+      return;
+    }
+    $("heading").textContent="What "+together(names)+" can take highest"+(age==="all"?"":" in "+AGENAMES[+age][0]);
+    $("intro").textContent="The number is the level each item reaches from level 3 before anything breaks. Open an item for the route to level "+aim+" or higher.";
     rows.sort(function(a,b){return b.p.safe-a.p.safe||a.x[0].localeCompare(b.x[0]);});
     // Items that stop at 4 or below are rarely worth idols, so they wait behind a fold
     var low=el("details","low"),lowN=0;
     rows.forEach(function(r){
-      var row=itemRow(r,age==="all");
+      var row=itemRow(r,showAge,aim);
       if(r.p.safe>4)box.appendChild(row);else{low.appendChild(row);lowN++;}
     });
     if(rows.length===lowN)box.appendChild(el("p",null,"Nothing in this age gets past level 4 without breaking. Open one below to see what a higher level costs."));
     if(lowN){low.insertBefore(el("summary",null,"Show "+lowN+" item"+(lowN===1?"":"s")+" that stop at level 4 or lower"),low.firstChild);box.appendChild(low);if(rows.length===lowN)low.open=true;}
   }
 
-  function itemRow(r,showAge){
+  function itemRow(r,showAge,aim){
     var p=r.p,d=el("details","item "+heat(p.safe)),s=el("summary");
     var w=el("span","heat");w.appendChild(el("span","ingot",p.safe>=GOAL?GOAL+"+":p.safe));
     var t=el("span");
@@ -214,47 +319,80 @@ details.how p{margin:12px 0;font-size:17px;max-width:60ch}
     if(showAge)sub+=", "+AGENAMES[r.age][0];
     if(p.safe===START)sub+=". Breaks going to level 4";
     t.appendChild(el("span","sub",sub));
+    t.appendChild(el("span","cost"+(r.c&&!r.c.lost?" free":""),costText(r.c,aim)));
     s.appendChild(w);s.appendChild(t);d.appendChild(s);
     // Built on first open, so a long list stays quick
-    d.addEventListener("toggle",function(){if(d.open&&d.children.length===1)d.appendChild(detail(p));});
+    d.addEventListener("toggle",function(){if(d.open&&d.children.length===1)d.appendChild(detail(p,aim));});
     return d;
   }
 
-  function detail(p){
+  function detail(p,aim){
     var b=el("div","body");
-    if(p.safe>START)b.appendChild(el("p",null,"Up to level "+p.safe+" there's no risk. Just use the idols."));
-    if(p.safe>=GOAL){b.appendChild(el("p",null,"It goes all the way to "+GOAL+" without breaking."));return b;}
-    var levels=[];for(var l=p.safe+1;l<=GOAL;l++)if(p.reached[l])levels.push(l);
-    if(!levels.length){b.appendChild(el("p",null,"Going past "+p.safe+" takes more than "+MAXLOST+" broken items."));return b;}
+    var levels=[];for(var l=START+1;l<=GOAL;l++)if(p.reached[l])levels.push(l);
+    if(!levels.length){b.appendChild(el("p",null,"Going past level 3 takes more than "+MAXLOST+" broken items."));return b;}
     b.appendChild(el("p",null,"Aim for level"));
     var chips=el("div","targets"),out=el("div");
     levels.forEach(function(l){
       var c=el("button","target");c.type="button";
       c.appendChild(el("span",null,String(l)));
-      var lost=p.reached[l].lost;c.appendChild(el("small",null,lost+" lost"));
+      var lost=p.reached[l].lost;c.appendChild(el("small",null,lost?lost+" lost":"no breaks"));
       c.onclick=function(){Array.prototype.forEach.call(chips.children,function(x){x.setAttribute("aria-pressed",x===c?"true":"false");});showRoute(p,l,out);};
       chips.appendChild(c);
     });
     b.appendChild(chips);b.appendChild(out);
-    chips.firstChild.click();
+    // Open on the level being aimed for, or the highest one reached below it
+    var pick=levels.indexOf(aim);
+    if(pick<0)for(pick=levels.length-1;pick>0&&levels[pick]>aim;pick--);
+    chips.children[pick].click();
     return b;
   }
 
-  // The runs to follow for one target level, cut off at the attempt that reaches it
+  // The route for one target level, cut off at the attempt that reaches it. Steps in a row by the same person are grouped,
+  // with a line saying when to hand the item and idols over
   function showRoute(p,target,out){
     out.innerHTML="";
-    var c=p.reached[target];
-    out.appendChild(el("p",null,"Level "+target+" uses "+c.idols+" idols and breaks "+c.lost+" item"+(c.lost===1?"":"s")+" on the way. Each run is one copy of the item, starting at level 3. Follow them in order:"));
-    var runs=el("div","runs");
+    var c=p.reached[target],group=p.names.length>1;
+    out.appendChild(el("p",null,"Level "+target+" uses "+c.idols+" idol"+(c.idols===1?"":"s")+(c.lost?" and breaks "+c.lost+" item"+(c.lost===1?"":"s")+" on the way.":", with no breaks.")));
+    var route=el("div","route");
     for(var i=0;i<=c.run;i++){
-      var row=el("div","run");row.appendChild(el("b",null,"Run "+(i+1)));
-      p.runs[i].forEach(function(s){
-        if(i===c.run&&s.from>=target)return;
-        row.appendChild(el("span",(s.ok?"ok":"bad")+(i===c.run&&s.to===target?" goal":""),s.from+"→"+s.to+(s.ok?" ✓":" ✗")));
+      var steps=p.runs[i].filter(function(s){return !(i===c.run&&s.from>=target);});
+      if(c.run>0)route.appendChild(el("p","runhead",i===0?"Start with the item at level 3.":"Craft a new copy and bring it to level 3."));
+      var groups=[];
+      steps.forEach(function(s){var g=groups[groups.length-1];if(g&&g.who===s.who)g.steps.push(s);else groups.push({who:s.who,steps:[s]});});
+      groups.forEach(function(g,k){
+        if(group&&k>0)route.appendChild(el("p","give","Hand the item and "+g.steps.length+" idol"+(g.steps.length===1?"":"s")+" to "+p.names[g.who]+"."));
+        var row=el("div","step");
+        if(group)row.appendChild(el("b",null,p.names[g.who]));
+        var list=el("span");
+        g.steps.forEach(function(s){
+          list.appendChild(el("span",(s.ok?"ok":"bad")+(i===c.run&&s.to===target?" goal":""),s.from+"→"+s.to+(s.ok?" ✓":" ✗ breaks")));
+        });
+        row.appendChild(list);route.appendChild(row);
+        // A break is a step to take on purpose: it uses up the bad roll so a later copy can pass
+        var last=g.steps[g.steps.length-1];
+        if(!last.ok){
+          var step=last.from+"→"+last.to;
+          route.appendChild(el("p","why",group?(p.names.length>2?"None":"Neither")+" of you can pass "+step+" yet. "+p.names[g.who]+" breaks this copy on purpose, which clears the way for a later one."
+            :"This copy breaks here. That's expected: it uses up a bad roll so a later copy can get past "+step+"."));
+        }
       });
-      runs.appendChild(row);
     }
-    out.appendChild(runs);
+    out.appendChild(route);
+    // Each run before the last ends in the break, at the level it was trying to leave
+    var breaks=[];for(i=0;i<c.run;i++){var r=p.runs[i];breaks.push(r[r.length-1].from);}
+    var mats=materials(p.item,breaks);
+    if(!mats.length)return;
+    out.appendChild(el("p",null,"Materials, not counting idols. Rebuilds are the extra copies after what comes back from each break:"));
+    var t=el("table","mats"),hr=t.insertRow();
+    ["","First copy","Rebuilds","Total"].forEach(function(h){var th=el("th",null,h);hr.appendChild(th);});
+    mats.forEach(function(m){
+      var r=t.insertRow();
+      r.insertCell().textContent=m.name;
+      r.insertCell().textContent=m.first;
+      r.insertCell().textContent=m.rebuild;
+      r.insertCell().textContent=m.first+m.rebuild;
+    });
+    out.appendChild(t);
   }
 
   (function(){
@@ -264,7 +402,14 @@ details.how p{margin:12px 0;font-size:17px;max-width:60ch}
       b.onclick=function(){store("fo-age",a[0]);render();};
       box.appendChild(b);
     });
+    var aim=$("aim");
+    for(var l=START+2;l<=GOAL;l++){var o=el("option",null,String(l));o.value=l;aim.appendChild(o);}
+    aim.value=recall("fo-aim")||"7";
+    aim.addEventListener("change",function(){store("fo-aim",aim.value);render();});
+    $("q").addEventListener("input",render);
     $("cname").value=recall("fo-name");
+    $("friends").value=recall("fo-friends");
+    $("friends").addEventListener("input",function(){store("fo-friends",this.value);render();});
     $("cname").addEventListener("input",function(){store("fo-name",this.value.trim());render();});
     render();
   })();

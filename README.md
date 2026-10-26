@@ -11,9 +11,11 @@ Unofficial fan tool. Not affiliated with or endorsed by Iron Gate AB. Single-pla
 Open `index.html` (or the hosted page, if you publish one). Everything runs in your browser.
 
 1. Type your character name exactly as you typed it in game, capitals included.
-2. Pick an age (Wood & flint, Bronze, Iron, Silver, Black metal, Carapace, Flametal, Deep North), or All ages. Items are grouped by the idol the game asks for.
-3. Weapons, shields and armour are ranked by how high they go from level 3 before their first failure, with warmer colours for higher levels. Items that stop at 4 or lower are folded away.
-4. Tap an item and pick a target level to see the idols used and items lost to get there, and the runs to follow in order.
+2. If friends use the same Forge, add their names. Each character has their own rolls, and only the one pressing the button counts, so the route names who should do each step.
+3. Pick an age (Wood & flint, Bronze, Iron, Silver, Black metal, Carapace, Flametal, Deep North), or All ages. Items are grouped by the idol the game asks for.
+4. Weapons, shields and armour are ranked by how high they go from level 3 before their first failure, with warmer colours for higher levels. Items that stop at 4 or lower are folded away.
+5. To go after a particular item, type part of its name (or its type, such as "spear") in the search box. It looks in the selected age (or everything, with All ages) and ranks the matches by what they cost to reach the "Aim for level" setting, 7 by default.
+6. Tap an item and pick a target level to see the idols used and items lost to get there, and the runs to follow in order. Below the runs is the materials list for that route: the first copy, the rebuilds after each break (less the 35% the game gives back), and the total. Materials come from the game's recipes and its own cost formula.
 
 On a first run nothing realistically gets past level 7: Unity's generator makes the first rolls of neighbouring levels related, so five successes in a row almost never happens. Higher levels always cost broken items.
 
