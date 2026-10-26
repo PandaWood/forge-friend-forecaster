@@ -1,94 +1,65 @@
-# Forge Oracle
+# Forge Friend Forecaster
 
-Predict Forge of Potential results in Valheim from your character name, before you spend an idol.
+See which Valheim weapons and armour will survive the Forge of Potential before you spend an idol, and plan who in your group should press the button at each step.
 
-Forge of Potential rolls are not random at the moment you click. Each item and target level has a seed stored in your `.fch` character file. Each attempt turns that seed into one roll, then saves a new seed. Reloading cannot change an outcome, so upcoming results can be read ahead of time.
+Forge of Potential rolls are fixed in advance. Each item type and level step has its own roll, and the first one comes from your character's name, so everything can be worked out from the name alone. No save file is needed.
 
-Unofficial fan tool. Not affiliated with or endorsed by Iron Gate AB. Single-player only. Read-only: it never modifies your save.
+Unofficial fan tool. Not affiliated with or endorsed by Iron Gate AB. Builds on [Forge Oracle](https://github.com/papptimus/Forge-Oracle) by papptimus, which worked out the roll mechanics.
 
-## Use it in the browser
+## Use it
 
-Open `index.html` (or the hosted page, if you publish one). Everything runs in your browser.
+Open `index.html` in a browser. Everything runs locally.
 
-1. Type your character name exactly as you typed it in game, capitals included.
-2. If friends use the same Forge, add their names. Each character has their own rolls, and only the one pressing the button counts, so the route names who should do each step.
+1. Type your character name exactly as in game, capitals included.
+2. If friends use the same Forge, add their names. Each character has their own rolls, and only the one pressing the button counts, so routes name who does each step.
 3. Pick an age (Wood & flint, Bronze, Iron, Silver, Black metal, Carapace, Flametal, Deep North), or All ages. Items are grouped by the idol the game asks for.
-4. Weapons, shields and armour are ranked by how high they go from level 3 before their first failure, with warmer colours for higher levels. Items that stop at 4 or lower are folded away.
-5. To go after a particular item, type part of its name (or its type, such as "spear") in the search box. It looks in the selected age (or everything, with All ages) and ranks the matches by what they cost to reach the "Aim for level" setting, 7 by default.
-6. Tap an item and pick a target level to see the idols used and items lost to get there, and the runs to follow in order. Below the runs is the materials list for that route: the first copy, the rebuilds after each break (less the 35% the game gives back), and the total. Materials come from the game's recipes and its own cost formula.
+4. Items are ranked by how high they go from level 3 before anything breaks, shown as an ingot coloured like heated iron. Items that stop at 4 or lower are folded away.
+5. To go after one item, type part of its name or its type (for example "spear") in the search box. Matches are ranked by what they cost to reach the "Aim for level" setting, 7 by default.
+6. Open an item and pick a target level. The route lists every step, when to hand the item and idols to someone else, which copies to break on purpose, and the materials needed for the first copy and the rebuilds.
 
-On a first run nothing realistically gets past level 7: Unity's generator makes the first rolls of neighbouring levels related, so five successes in a row almost never happens. Higher levels always cost broken items.
-
-The page assumes the character hasn't used idols on those items yet, and that you bring each new copy of an item to level 3 yourself. It needs no character file: every roll, including the ones after a failure, follows from the name. If you have already used idols on an item, use the command line tool below with your character file.
-
-## Use it from the command line
-
-`forge_predict.py` needs only Python 3. It prints the same list as the page.
-
-```
-python forge_predict.py --item Hammer --level 3 --fch Thor.fch
-```
-
-| Option | Meaning |
-| --- | --- |
-| `--item` | The item's internal name, not its display name. Look names up in the [Valheim item ID list](https://www.valheim.tools/item-ids) |
-| `--level` | The item's current level. Row 1 is current to +1, row 2 is +1 to +2, and so on |
-| `--fch` | Your character file. Stored seeds are used and the character name is read from it |
-| `--name` | Character name. Only needed without `--fch`, or if the name could not be read |
-| `--count` | How many upgrade steps to list (default 10) |
-
-`fch_tail.py` prints the save version, checksum status and the raw seed tables from a `.fch` file. It is a debugging aid.
+The page assumes these characters haven't used idols on those items yet, and that each new copy is brought to level 3 at the normal workbench or forge.
 
 ## How it works
 
-These details were read from the game's own code and then checked against real saves.
+These details come from the game's own code (`assembly_valheim.dll`) and item data, game version 1.0.20, October 2026.
 
 1. The key is `hash(item name) + target level`, using Valheim's string hash.
-2. The seed is the one stored for that key in the save. If there is none, it is `hash(character name) + key`.
-3. Unity's random generator is seeded with it and one value between 0 and 1 is drawn. That is the roll.
-4. A second draw, taken modulo 99999999, is stored as the new seed for that key. This happens on every attempt, before the result is judged.
-5. A roll of 0.65 or less succeeds. A higher roll fails, and a failed upgrade destroys the item. Every idol tier has the same odds.
+2. The first seed for a key is `hash(character name) + key`. Later seeds are stored in the character file.
+3. Unity's random generator is seeded with it, and one value between 0 and 1 is drawn. That is the roll. A second draw, modulo 99999999, becomes the next seed for that key. This happens on every attempt, so retries can be predicted too.
+4. A roll of 0.65 or less succeeds. A failure destroys the item. Every idol has the same odds.
+5. An attempt at the Forge of Potential uses one idol and nothing else. On a break, the game returns 35% (rounded up) of the crafting cost plus the cost of the item's current level, for each recoverable material.
+6. The material cost of upgrading to level q is the per-level amount times q − 1 below level 4, and times 4 + (q − 4) / 2 from level 4 up.
 
-Things that follow from this:
+Two things follow:
 
-- Reloading a save does not reroll an attempt.
-- Two items with the same internal name at the same target level share one sequence.
-- A different item or a different level is a separate sequence.
-- After a success, the next upgrade of that item uses the next level's slot, which has a fresh sequence.
-
-### Save format (version 47, game 1.0.20)
-
-```
-[u32 payloadLength][payload][u32 64][SHA-512 of payload]
-```
-
-Near the end of the payload, after the build-menu blob, come two lists. The second is the Forge seed list: a count followed by `(u32 key, u32 seed)` pairs. The first is a separate list of drop counters, which the Forge does not use.
+- On a first run almost nothing passes level 7. The first rolls of neighbouring levels come from neighbouring seeds, which Unity's generator turns into related values, so five successes in a row happens about once in 8,000.
+- Two players together usually get much further, because one of them tends to succeed where the other fails.
 
 ## What is verified
 
-- The seed-to-roll math matched 14 consecutive real hammer attempts, including every following seed.
-- Those attempts rolled 0.5535 (success) and 0.6602 (fail), which fits a cutoff of 0.65.
-- [ValheimSaveParser](https://github.com/Melichor/ValheimSaveParser) reads the same mechanics independently, including the 0.65 chance and the starting seed from the character name.
-- The key and seed layout match the game's decompiled `Player.GetItemUpgradeChance`.
-- The character name detection returned the right name on every save tested.
+- All 19 seeds stored in a real character file are reproduced from the character name alone, including a step attempted twice.
+- Predictions matched real attempts on several items.
+- Which idol each item needs, its materials and the English names come from the game's recipe data and localisation.
 
 ## Known limits
 
-- The 0.65 success chance and the "every failure breaks the item" rule come from the game data as extracted by [ValheimSaveParser](https://github.com/Melichor/ValheimSaveParser). Our own attempts only tested the wood idol, but that project's extraction found the same odds on every upgrader item.
-- The built-in item list (271 weapons, armour, shields and tools that can be upgraded) is based on [valheim.tools](https://www.valheim.tools/item-ids), narrowed to the items [ValheimSaveParser](https://github.com/Melichor/ValheimSaveParser) lists as upgradable, in October 2026. It covers names that exist in game version 1.0.20 at that time and may miss newer items. A wrong name gives a plausible but wrong prediction.
-- Name detection looks for the name stored next to your character ID. A character with no crafted items, or with many items crafted by someone else, may need the name entered by hand.
-- A game patch can change the math or the save format.
+- Playing together on a server hasn't been tested. The roll uses the character pressing the button, so it should work, but check one cheap step first.
+- If a character has already used idols on an item, the page's route for it is wrong. `forge_predict.py` reads the stored seeds from a character file instead.
+- The item list covers game version 1.0.20. A patch can change the math, the odds or the recipes.
 
-If a prediction ever misses, open an issue with the save from before the attempt, the save from after it, and what happened.
+## Command line
 
-## Files
+`forge_predict.py` (from Forge Oracle) predicts the next steps for one item from a character file, using its stored seeds:
 
-| File | Purpose |
-| --- | --- |
-| `index.html` | The browser tool, a single self-contained file |
-| `forge_predict.py` | Command line predictor |
-| `fch_tail.py` | Save inspector |
+```
+python forge_predict.py --item SpearBronze --level 3 --fch Thor.fch
+```
 
-## License
+## Credits
 
-Add a license before publishing, for example MIT.
+- [Forge Oracle](https://github.com/papptimus/Forge-Oracle) by papptimus: the original tool and roll mechanics.
+- [ValheimSaveParser](https://github.com/Melichor/ValheimSaveParser) by Melichor: independent confirmation of the odds.
+
+## Licence
+
+Forge Oracle has no licence yet. Until permission to build on it is settled, no licence is granted here.
