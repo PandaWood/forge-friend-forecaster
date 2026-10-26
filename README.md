@@ -6,6 +6,8 @@ Forge of Potential rolls are fixed in advance. Each item type and level step has
 
 Unofficial fan tool. Not affiliated with or endorsed by Iron Gate AB. Builds on [Forge Oracle](https://github.com/papptimus/Forge-Oracle) by papptimus, which worked out the roll mechanics.
 
+![Wolf gear in the Silver age for Astrid and Bjorn, with the route for Wolf Hide Trousers open](docs/screenshot.png)
+
 ## Use it
 
 Open `index.html` in a browser. Everything runs locally.
