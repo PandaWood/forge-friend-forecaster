@@ -1,6 +1,6 @@
 # Forge Oracle
 
-Predict the next Forge of Potential results in Valheim from your character save, before you spend an idol.
+Predict Forge of Potential results in Valheim from your character name, before you spend an idol.
 
 Forge of Potential rolls are not random at the moment you click. Each item and target level has a seed stored in your `.fch` character file. Each attempt turns that seed into one roll, then saves a new seed. Reloading cannot change an outcome, so upcoming results can be read ahead of time.
 
@@ -8,33 +8,16 @@ Unofficial fan tool. Not affiliated with or endorsed by Iron Gate AB. Single-pla
 
 ## Use it in the browser
 
-Open `index.html` (or the hosted page, if you publish one).
+Open `index.html` (or the hosted page, if you publish one). Everything runs in your browser.
 
-1. Drop your character file onto the page. Everything runs locally in your browser; the file is never uploaded.
-2. Pick one of the slots found in your save, or type an item's internal name (for example `Hammer`) and its current level.
-3. Read the next ten upgrade steps for that item: row 1 is current level to +1, row 2 is +1 to +2, and so on, each with its predicted result and roll. The rows after the first assume every earlier step succeeded, since a failure breaks the item.
+1. Type your character name exactly as you typed it in game, capitals included.
+2. Pick an age (Wood & flint, Bronze, Iron, Silver, Black metal, Carapace, Flametal, Deep North), or All ages. Items are grouped by the idol the game asks for.
+3. Weapons, shields and armour are ranked by how high they go from level 3 before their first failure, with warmer colours for higher levels. Items that stop at 4 or lower are folded away.
+4. Tap an item and pick a target level to see the idols used and items lost to get there, and the runs to follow in order.
 
-The page also has an "Item names and IDs" list with search. Tap an item to fill in its internal name.
+On a first run nothing realistically gets past level 7: Unity's generator makes the first rolls of neighbouring levels related, so five successes in a row almost never happens. Higher levels always cost broken items.
 
-The character name is read from the save automatically. It only matters for an item and level that has no stored seed yet, where the starting seed comes from the name.
-
-On Windows, character files live in:
-
-```
-%USERPROFILE%\AppData\LocalLow\IronGate\Valheim\characters_local
-C:\Program Files (x86)\Steam\userdata\<Steam ID>\892970\remote\characters   (Steam Cloud saves)
-```
-
-On Linux (native Steam build):
-
-```
-~/.local/share/Steam/userdata/<Steam ID>/892970/remote/characters   (Steam Cloud saves)
-~/.config/unity3d/IronGate/Valheim/characters_local                  (local saves)
-```
-
-Through Proton, local saves are under `~/.local/share/Steam/steamapps/compatdata/892970/pfx/drive_c/users/steamuser/AppData/LocalLow/IronGate/Valheim/characters_local`. In the file picker, press Ctrl+L to paste a path and Ctrl+H to show hidden folders.
-
-The game writes seeds to the file only when it saves, so quit to the main menu after an attempt before loading the file.
+The page assumes the character hasn't used idols on those items yet, and that you bring each new copy of an item to level 3 yourself. It needs no character file: every roll, including the ones after a failure, follows from the name. If you have already used idols on an item, use the command line tool below with your character file.
 
 ## Use it from the command line
 

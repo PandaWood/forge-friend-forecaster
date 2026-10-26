@@ -4,209 +4,147 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Forge Oracle</title>
-<meta name="color-scheme" content="light dark">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya:wght@400;500;700&family=Alegreya+SC:wght@500;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<meta name="color-scheme" content="dark light">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Uncial+Antiqua&family=Vollkorn:ital,wght@0,400;0,500;0,700;1,400&family=Noto+Sans+Runic&display=swap">
 <style>
-[hidden]{display:none!important}
-/* Layout: one narrow column, a drop zone that becomes a reading of the save, then the predicted attempt ledger. */
+/* The smithy at night. An item's level is shown as the colour of heated iron: cold grey, cherry, orange, yellow, white-hot. */
 :root{
-  --bg:#f3efe6; --panel:#fbf8f1; --fg:#1f2326; --muted:#5d6468; --line:#d9d2c2;
-  --accent:#a8541a; --good:#2f6b3c; --bad:#a3302a; --maybe:#8a6d12;
-  --disp:"Alegreya SC",Georgia,serif; --body:"Alegreya",Georgia,serif; --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  --soot:#1f1c19; --anvil:#28241f; --iron:#3b3631; --ash:#ebe4d8; --slag:#a69d8f; --amber:#f2a63b;
+  --good:#8fbf72; --bad:#e2674e;
+  --h4:#625c55; --h5:#9e2f1c; --h6:#e2611b; --h7:#f6b42c; --h8:#fff0bf;
+  --on4:#ebe4d8; --on5:#fbe7dc; --on6:#1f1c19; --on7:#1f1c19; --on8:#1f1c19;
+  --glow:1;
+  --onamber:#1f1c19;
+  --title:"Uncial Antiqua",Georgia,serif; --body:"Vollkorn",Georgia,serif; --rune:"Noto Sans Runic",sans-serif;
+  color-scheme:dark;
 }
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#14191c; --panel:#1b2226; --fg:#e8e4d8; --muted:#97a0a4; --line:#2e383d;
-  --accent:#e0914f; --good:#6fbf80; --bad:#e2766f; --maybe:#d8b84e; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#14191c; --panel:#1b2226; --fg:#e8e4d8; --muted:#97a0a4; --line:#2e383d;
-  --accent:#e0914f; --good:#6fbf80; --bad:#e2766f; --maybe:#d8b84e; color-scheme:dark}
+/* Light: cool stone, not parchment. Heat colours deepen so they hold up on a pale ground */
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){
+  --soot:#dedcd7; --anvil:#ecebe7; --iron:#c3beb5; --ash:#26221d; --slag:#5f584f; --amber:#a65c08; --onamber:#fff;
+  --good:#3d7a2a; --bad:#a8301c;
+  --h4:#8b857c; --h5:#9a2b19; --h6:#cf5413; --h7:#e09a10; --h8:#f5cf55;
+  --on4:#fff; --on5:#fff; --on6:#fff; --on7:#26221d; --on8:#26221d;
+  --glow:.45; color-scheme:light}}
+:root[data-theme="light"]{
+  --soot:#dedcd7; --anvil:#ecebe7; --iron:#c3beb5; --ash:#26221d; --slag:#5f584f; --amber:#a65c08; --onamber:#fff;
+  --good:#3d7a2a; --bad:#a8301c;
+  --h4:#8b857c; --h5:#9a2b19; --h6:#cf5413; --h7:#e09a10; --h8:#f5cf55;
+  --on4:#fff; --on5:#fff; --on6:#fff; --on7:#26221d; --on8:#26221d;
+  --glow:.45; color-scheme:light}
 *{box-sizing:border-box}
-body{background:var(--bg);color:var(--fg);font:18px/1.5 var(--body);margin:0;
-  padding-block:32px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-main{max-width:720px;margin:0 auto;display:grid;gap:28px}
-h1{font:700 clamp(34px,7vw,52px)/1.05 var(--disp);letter-spacing:.02em;margin:0;text-wrap:balance}
-.lede{color:var(--muted);margin:10px 0 0;max-width:56ch}
-h2{font:500 15px var(--disp);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
-.drop{border:2px dashed var(--line);border-radius:6px;background:var(--panel);padding:34px 20px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s}
-.drop:hover,.drop.over,.drop:focus-visible{border-color:var(--accent);outline:none}
-.drop strong{font:500 22px var(--disp);display:block}
-.drop span{color:var(--muted);font-size:16px}
-.drop.loaded{padding:16px 20px;text-align:left;display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:space-between}
-.drop.loaded strong{font-size:18px;display:inline}
-.mono{font-family:var(--mono);font-size:14px}
-main>*{min-width:0}
-.drop .mono{overflow-wrap:anywhere}
-.where p{margin:8px 0}.where .mono{overflow-wrap:anywhere}
-.where .row{margin-top:12px}
-.wherepaths{display:grid;margin-top:10px;border-top:1px solid var(--line)}
-.wpath{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
-.wpath b{grid-column:1/-1;font-weight:500;color:var(--fg)}
-.wpath .mono{min-width:0}
-.copy,.again,.reload{font:14px var(--body);border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:4px;padding:5px 12px;cursor:pointer}
-.copy:hover,.again:hover,.reload:hover{border-color:var(--accent);color:var(--accent)}
-#again{margin:10px 0 0}
-.row{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
-label{display:grid;gap:4px;font-size:15px;color:var(--muted);min-width:0}
-input,select{font:16px var(--body);color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:9px 10px;min-width:0;width:100%}
-.field{display:grid;gap:4px;font-size:15px;color:var(--muted);min-width:0}
-/* Labels differ in length, so pin each field to the bottom of its column and the boxes line up */
-.row>label,.row>.field{align-content:end}
-.combo{position:relative}
-.combo input{padding-right:38px}
-.combo-btn{position:absolute;right:1px;top:1px;bottom:1px;width:36px;display:grid;place-items:center;border:0;border-radius:0 4px 4px 0;background:none;color:var(--muted);cursor:pointer}
-.combo-btn:hover{color:var(--accent)}
-.combo-list{position:absolute;z-index:5;left:0;top:calc(100% + 4px);width:max(100%,min(360px,calc(100vw - 32px)));max-height:340px;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:4px;box-shadow:0 10px 28px rgba(0,0,0,.28)}
-.combo-group{position:sticky;top:0;background:var(--panel);font:500 12px var(--disp);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:8px 10px 4px;border-bottom:1px solid var(--line)}
-.combo-opt{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:6px 10px;cursor:pointer;color:var(--fg);font-size:15px}
-.combo-opt .mono{color:var(--muted);font-size:12px;flex:none}
-.combo-opt:hover,.combo-opt[aria-selected="true"]{background:var(--bg);color:var(--accent)}
-input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
-.slots{display:flex;flex-wrap:wrap;gap:8px}
-.slot{font:14px var(--mono);border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:4px;padding:6px 10px;cursor:pointer}
-.slot:hover,.slot[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
-.note{font-size:15px;color:var(--muted)}
-.note a{color:var(--accent)}
-.status{border-left:3px solid var(--accent);padding:6px 12px;background:var(--panel);font-size:16px}
-.status.warn{border-color:var(--bad)}
-.summary{font:500 26px/1.2 var(--disp);margin:0 0 4px}
-.paths{display:grid;gap:0;margin-top:12px;border-top:1px solid var(--line)}
-.line{display:grid;grid-template-columns:3ch 8ch 1fr auto;gap:12px;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--line);font:15px var(--mono)}
-.line b{font-weight:600}.line small{color:var(--muted);font-size:13px}
-.line.S b{color:var(--good)}.line.F b{color:var(--bad)}.line.M b{color:var(--maybe)}
-.ref{border-top:1px solid var(--line);padding-top:14px}
-.reftools{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
-.reftools input{flex:1 1 200px}
-.tab{font:14px var(--body);border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:4px;padding:6px 12px;cursor:pointer}
-.tab[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
-.reflist{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:0 20px;max-height:420px;overflow:auto;border-top:1px solid var(--line)}
-.ref-row{display:flex;justify-content:space-between;gap:10px;align-items:baseline;text-align:left;width:100%;background:none;border:0;border-bottom:1px solid var(--line);color:var(--fg);font:15px var(--body);padding:7px 2px;cursor:pointer;min-width:0}
-.ref-row:hover,.ref-row:focus-visible{color:var(--accent)}
-.ref-row span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ref-row .mono{color:var(--muted);flex:none}
-.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:14px;color:var(--muted);margin-top:10px}
-.finder{border-top:1px solid var(--line);padding-top:14px}
-.finder .row{margin:12px 0}
-.finder button.go{font:500 16px var(--body);color:var(--bg);background:var(--accent);border:0;border-radius:4px;padding:9px 16px;cursor:pointer}
-.finder button.go:disabled{opacity:.5;cursor:default}
-.frow{display:grid;grid-template-columns:7ch 1fr;gap:12px;align-items:baseline;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);color:var(--fg);font:15px var(--mono);padding:8px 0;cursor:pointer}
-.frow:hover,.frow:focus-visible{color:var(--accent)}
-details{border-top:1px solid var(--line);padding-top:14px}
-summary{cursor:pointer;font:500 15px var(--disp);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
-details p{margin:10px 0;font-size:16px}
 [hidden]{display:none!important}
-</style>
+body{background:var(--soot);color:var(--ash);font:19px/1.55 var(--body);font-variant-numeric:lining-nums tabular-nums;margin:0;
+  padding-block:40px 72px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:640px;margin:0 auto;display:grid;gap:36px}
+main>*{min-width:0}
+/* The font shorthand resets figure style, so restate lining figures for everything inside */
+body *{font-variant-numeric:lining-nums tabular-nums}
 
+header h1{font:400 clamp(44px,11vw,72px)/1 var(--title);margin:0;color:var(--ash)}
+.runes{font:22px/1.2 var(--rune);letter-spacing:.18em;color:var(--amber);margin:12px 0 0;min-height:1.2em;overflow-wrap:anywhere}
+.lede{color:var(--slag);margin:16px 0 0;max-width:52ch}
+
+.field{display:grid;gap:8px}
+.field>span{font-size:17px;color:var(--slag)}
+input{font:500 24px var(--body);color:var(--ash);background:var(--anvil);border:1px solid var(--iron);border-bottom:3px solid var(--iron);border-radius:3px;padding:10px 14px;width:100%;max-width:420px}
+input::placeholder{color:var(--slag);opacity:.6}
+input:focus{outline:none;border-color:var(--amber)}
+button:focus-visible,summary:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+
+.ages{display:flex;flex-wrap:wrap;gap:6px}
+.age{font:17px var(--body);border:1px solid var(--iron);background:none;color:var(--ash);border-radius:3px;padding:5px 12px;cursor:pointer}
+.age:hover{border-color:var(--slag)}
+.age[aria-pressed="true"]{background:var(--amber);border-color:var(--amber);color:var(--onamber)}
+
+.results h2{font:500 26px/1.2 var(--body);margin:0}
+.results>p{color:var(--slag);font-size:17px;margin:6px 0 14px}
+
+/* One row per item. The ingot is the only coloured thing in the row */
+.item{border-top:1px solid var(--iron)}
+.item:last-of-type{border-bottom:1px solid var(--iron)}
+.item>summary{display:grid;grid-template-columns:64px 1fr;gap:16px;align-items:center;padding:12px 4px;cursor:pointer;list-style:none}
+.item>summary::-webkit-details-marker{display:none}
+.item>summary:hover .nm{color:var(--amber)}
+.ingot{height:40px;display:grid;place-items:center;font:700 22px var(--body);background:var(--hc);color:var(--oc);
+  clip-path:polygon(9% 0,91% 0,100% 100%,0 100%)}
+.nm{font-size:20px;line-height:1.25;display:block}
+.sub{font-size:15px;color:var(--slag)}
+.h4{--hc:var(--h4);--oc:var(--on4)}.h5{--hc:var(--h5);--oc:var(--on5)}.h6{--hc:var(--h6);--oc:var(--on6)}
+.h7{--hc:var(--h7);--oc:var(--on7)}.h8{--hc:var(--h8);--oc:var(--on8)}
+/* Hot iron glows. The glow sits on a wrapper because clip-path would cut it off */
+.heat{display:block;filter:drop-shadow(0 0 calc(10px*var(--glow)) var(--hc))}
+.h4 .heat,.h5 .heat{filter:none}
+.h6 .heat{filter:drop-shadow(0 0 calc(5px*var(--glow)) var(--hc))}
+@media (prefers-reduced-motion:no-preference){
+  .h7 .heat,.h8 .heat{animation:ember 2.6s ease-in-out infinite alternate}
+  @keyframes ember{from{filter:drop-shadow(0 0 calc(6px*var(--glow)) var(--hc))}to{filter:drop-shadow(0 0 calc(16px*var(--glow)) var(--hc))}}
+}
+.h8 .nm{font-weight:700}
+
+.low{margin-top:20px}
+.low>summary{cursor:pointer;font-size:17px;color:var(--slag);padding:6px 0}
+.low .item{opacity:.8}
+
+.body{padding:0 4px 18px 84px;font-size:17px}
+.body p{margin:8px 0}
+.targets{display:flex;flex-wrap:wrap;gap:6px}
+.target{font:17px var(--body);border:1px solid var(--iron);background:none;color:var(--ash);border-radius:3px;padding:4px 12px;cursor:pointer;display:grid;line-height:1.25;text-align:center}
+.target small{font-size:13px;color:var(--slag)}
+.target:hover{border-color:var(--slag)}
+.target[aria-pressed="true"]{border-color:var(--amber);color:var(--amber)}
+.runs{display:grid;gap:3px;margin-top:10px;font-size:16px}
+.run{display:flex;flex-wrap:wrap;gap:2px 14px}
+.run>b{font-weight:500;color:var(--slag);min-width:4.5ch}
+.ok{color:var(--good)}.bad{color:var(--bad)}
+.goal{font-weight:700;text-decoration:underline;text-underline-offset:3px}
+
+details.how{border-top:1px solid var(--iron);padding-top:16px}
+details.how>summary{cursor:pointer;font-size:18px;color:var(--slag)}
+details.how p{margin:12px 0;font-size:17px;max-width:60ch}
+
+@media (max-width:480px){
+  .item>summary{grid-template-columns:52px 1fr;gap:12px}
+  .ingot{height:34px;font-size:19px}
+  .body{padding-left:4px}
+}
+</style>
 </head>
 <body>
 <main>
   <header>
     <h1>Forge Oracle</h1>
-    <p class="lede">Drop in your Valheim character file and see the next Forge of Potential results before you spend an idol. Everything runs in your browser. Your file is never uploaded.</p>
+    <p class="runes" id="runes" aria-hidden="true"></p>
+    <p class="lede">Every roll at the Forge of Potential is fixed by your character's name. Type it in to see which weapons and armour will take your idols furthest.</p>
   </header>
 
-  <section>
-    <h2>1 &middot; Character file</h2>
-    <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose a character file">
-      <strong>Drop your .fch file here</strong>
-      <span>or click to browse. Where to find it is listed below.</span>
-    </div>
-    <p id="again" hidden><button class="again" id="againBtn" type="button"></button></p>
-    <div class="note where" id="where">
-      <div class="row">
-        <label for="setup">How you play Valheim
-          <select id="setup">
-            <option value="win">Windows, Steam</option>
-            <option value="linux">Linux, native</option>
-            <option value="proton">Linux, Proton</option>
-            <option value="flatpak">Linux, Flatpak Steam</option>
-            <option value="deck">Steam Deck</option>
-          </select>
-        </label>
-        <label for="steamid">Steam ID folder (optional)
-          <input id="steamid" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="the number in userdata">
-        </label>
-        <label for="library" id="libraryLabel" hidden>Steam library with Valheim
-          <input id="library" autocomplete="off" spellcheck="false" placeholder="~/.local/share/Steam">
-        </label>
-      </div>
-      <div class="wherepaths" id="wherePaths"></div>
-    </div>
-    <input type="file" id="file" accept=".fch" hidden>
-    <p id="fileStatus" class="status" hidden></p>
+  <label class="field" for="cname">
+    <span>Character name, exactly as in game, capitals included</span>
+    <input id="cname" autocomplete="off" spellcheck="false" placeholder="Thor">
+  </label>
+
+  <div class="field">
+    <span id="agesLabel">Age</span>
+    <div class="ages" id="ages" role="group" aria-labelledby="agesLabel"></div>
+  </div>
+
+  <section class="results" id="out" hidden>
+    <h2 id="heading"></h2>
+    <p>The number is the level each item reaches from level 3 before anything breaks. Open an item to aim higher.</p>
+    <div id="list"></div>
   </section>
 
-  <section id="slotsSec" hidden>
-    <h2>Forge slots found in your save</h2>
-    <div class="slots" id="slots"></div>
-    <p class="note" id="slotsNote"></p>
-  </section>
-
-  <section>
-    <h2>2 &middot; What are you upgrading?</h2>
-    <div class="row">
-      <div class="field">
-        <label for="item">Item</label>
-        <div class="combo">
-          <input id="item" role="combobox" aria-expanded="false" aria-controls="itemList" aria-autocomplete="list" value="Hammer" autocomplete="off" spellcheck="false">
-          <button type="button" class="combo-btn" id="itemBtn" tabindex="-1" aria-label="Show all items"><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
-          <div class="combo-list" id="itemList" role="listbox" aria-label="Items" hidden></div>
-        </div>
-      </div>
-      <label for="level">Current level of the item
-        <input id="level" type="number" min="0" max="30" value="3">
-      </label>
-      <label for="cname">Character name <span class="note" id="nameHint">(filled in from your save)</span>
-        <input id="cname" autocomplete="off" spellcheck="false" placeholder="read from your save">
-      </label>
-    </div>
-    <p class="note">Pick the item from the list, or type to search by name or internal ID. Enter the level your item is now. Not sure which item? <a href="#ref" id="refLink">Browse item names and IDs</a>.</p>
-  </section>
-
-  <section id="out" hidden>
-    <h2>3 &middot; Next ten upgrades</h2>
-    <p class="summary" id="summary"></p>
-    <p class="note" id="source"></p>
-    <div class="paths" id="paths"></div>
-    <div class="legend">
-      <span><b style="color:var(--good)">Success</b> roll of 0.65 or less</span>
-      <span><b style="color:var(--bad)">Fail</b> roll above 0.65 (the item breaks)</span>
-    </div>
-  </section>
-
-    <details class="finder" id="finder">
-    <summary>Find a starting name (experimental)</summary>
-    <p class="note">For a brand-new character, the first roll for an item and level comes from the character name. This searches for names whose first rolls succeed several levels in a row for the item and level entered above. It only helps a character that has never tried that item at those levels. Not yet tested in game.</p>
-    <div class="row">
-      <label for="fmax">Name length to try
-        <select id="fmax"><option value="4" selected>3 to 4 letters (about 2 seconds)</option><option value="3">3 letters only (instant)</option><option value="5">3 to 5 letters (slow)</option></select>
-      </label>
-    </div>
-    <p><button class="go" id="fgo" type="button">Search names</button> <span class="note" id="fprog"></span></p>
-    <div class="paths" id="fres"></div>
-    <p class="note" id="fnote" hidden>Tap a name to enter it above and see its next ten upgrades. Check the game accepts the name when you create the character.</p>
-  </details>
-
-    <details class="ref" id="ref">
-    <summary>Item names and IDs</summary>
-    <p class="note">Tap an item to fill in the name above. IDs are case sensitive. Source: <a href="https://www.valheim.tools/item-ids" target="_blank" rel="noopener noreferrer">valheim.tools</a>.</p>
-    <div class="reftools">
-      <input id="refq" type="search" placeholder="Search by name or ID" autocomplete="off" spellcheck="false" aria-label="Search items">
-      <div class="reftools" id="reftabs" style="margin:0"></div>
-    </div>
-    <div class="reflist" id="reflist"></div>
-  </details>
-
-  <details>
+  <details class="how">
     <summary>How this works</summary>
-    <p>Each item and target level has its own saved seed in your character file. An attempt turns that seed into one roll between 0 and 1, then stores a new seed. Reloading cannot change the outcome, so the next results can be read ahead of time.</p>
-    <p>Seeds are written only when the game saves, so quit to the main menu after any attempt before dropping the file here. Predictions were checked against 14 real attempts on Valheim 1.0.20. An upgrade succeeds when the roll is 0.65 or less. That value, and the fact that every failure destroys the item, comes from the game data as read by <a href="https://github.com/Melichor/ValheimSaveParser" target="_blank" rel="noopener noreferrer">Melichor's ValheimSaveParser</a>, and it fits every attempt we recorded.</p>
-    <p>Each row is one upgrade step for a single item. Row 1 takes it from its current level up one, row 2 takes it up another, and so on. Each level has its own saved seed, so each row uses the next roll for that level. The rows after the first assume every earlier step succeeded, because a failure breaks the item. If a step breaks it, the rows after it do not apply to that item.</p>
+    <p>Every Forge of Potential attempt is decided in advance. Each item and level step has its own roll, and the first roll comes from your character name. An attempt, whether it works or not, moves that step on to its next roll. Reloading doesn't change anything.</p>
+    <p>A roll of 0.65 or less succeeds. A failure destroys the item and gives back 35% of its materials. These values come from the game data and are the same for every idol.</p>
+    <p>On a first run almost nothing passes level 7. The game's random numbers for neighbouring levels are related, so five successes in a row is very rare. Higher levels always cost some broken items.</p>
+    <p>The lists assume this character hasn't used idols on these items yet, and that you bring each new copy of an item to level 3 yourself. If an item breaks, craft a new one, bring it to level 3 and follow the next run. Rolls belong to the item type, not the single item, so a new copy carries on where the old one stopped.</p>
   </details>
 </main>
 
 <script>
 (function(){
-  var M=0xFFFFFFFF, A=1812433253;
+  var START=3, GOAL=10, MAXLOST=30, CHANCE=Math.fround(0.65), A=1812433253;
   function hash(s){var n=5381,n2=5381;for(var i=0;i<s.length;i+=2){n=(Math.imul(n,33)^s.charCodeAt(i))>>>0;if(i===s.length-1)break;n2=(Math.imul(n2,33)^s.charCodeAt(i+1))>>>0;}return (n+Math.imul(n2,1566083941))>>>0;}
   function rollNext(seed){
     var s0=seed>>>0,s1=(Math.imul(s0,A)+1)>>>0,s2=(Math.imul(s1,A)+1)>>>0,s3=(Math.imul(s2,A)+1)>>>0;
@@ -214,377 +152,123 @@ details p{margin:10px 0;font-size:16px}
     var r1=step(),r2=step();
     return {roll:(r1&0x7FFFFF)/8388607,next:r2%99999999};
   }
-  function readSlots(buf){
-    var dv=new DataView(buf),u8=new Uint8Array(buf),len=buf.byteLength;
-    if(len<80)throw new Error("That file is too small to be a character save.");
-    var n=dv.getUint32(0,true);
-    if(n+4>len)throw new Error("That does not look like a Valheim character file.");
-    var ver=dv.getUint32(4,true);
-    var res={version:ver,slots:{},hashOk:null};
-    if(ver<47){res.old=true;return res;}
-    var end0=4+n,i,L,end,o,cnt,k,ln,a,b;
-    for(i=end0-12;i>Math.max(end0-20000,4);i--){
-      L=dv.getUint32(i,true);end=i+4+L;
-      if(L<20||end>end0||end0-end>4096)continue;
-      cnt=dv.getUint32(i+4,true);if(cnt>2000)continue;
-      o=i+8;var ok=true;
-      for(k=0;k<cnt;k++){if(o+4>end0){ok=false;break;}ln=dv.getUint32(o,true);if(ln>100){ok=false;break;}o+=4+ln;}
-      if(!ok||o+8!==end)continue;
-      a=dv.getUint32(end,true);o=end+4+a*8;if(o+4>end0)continue;
-      b=dv.getUint32(o,true);o+=4;
-      if(o+b*8!==end0)continue;
-      for(k=0;k<b;k++)res.slots[dv.getUint32(o+8*k,true)]=dv.getUint32(o+8*k+4,true);
-      res.count=b;res.found=true;return res;
-    }
-    // Fallback for newer saves: seed table is last in player data, preceded by another count+8-byte table
-    for(b=0;b<=2000;b++){
-      o=end0-4-b*8;if(o<8)break;
-      if(dv.getUint32(o,true)!==b)continue;
-      for(a=0;a<=2000;a++){i=o-4-a*8;if(i<8)break;if(dv.getUint32(i,true)===a)break;}
-      if(a>2000||i<8)continue;
-      for(k=0;k<b;k++)res.slots[dv.getUint32(o+4+8*k,true)]=dv.getUint32(o+8+8*k,true);
-      res.count=b;res.found=true;return res;
-    }
-    res.found=false;return res;
-  }
-  function detectName(buf){
-    var u=new Uint8Array(buf),end=Math.min(4+new DataView(buf).getUint32(0,true),u.length),seen={},best=null,i,j,L,ok,c,sides,s,a,z,key,name;
-    for(i=12;i<end-10;i++){
-      L=u[i];if(L<3||L>20||i+1+L+8>end)continue;
-      ok=true;name="";
-      for(j=0;j<L;j++){c=u[i+1+j];if(!((c>=48&&c<=57)||(c>=65&&c<=90)||(c>=97&&c<=122)||c===32||c===95||c===45||c===39||c>=128)){ok=false;break;}}
-      if(!ok)continue;
-      // Names may hold non-ASCII letters (eg å), stored as UTF-8
-      try{name=new TextDecoder("utf-8",{fatal:true}).decode(u.subarray(i+1,i+1+L));}catch(e){continue;}
-      sides=[i-8,i+1+L];
-      for(s=0;s<2;s++){
-        a=sides[s];
-        // Player ID may be negative, so high word is all zero or all 0xFF
-        if(!((u[a+4]|u[a+5]|u[a+6]|u[a+7])===0||(u[a+4]&u[a+5]&u[a+6]&u[a+7])===255))continue;
-        if(!(u[a]||u[a+1]||u[a+2]||u[a+3]))continue;
-        key=name+"|"+u[a]+"."+u[a+1]+"."+u[a+2]+"."+u[a+3];
-        z=seen[key]||(seen[key]={name:name,n:0,pos:i});z.n++;
-        if(z.n>=2&&(!best||z.n>best.n||(z.n===best.n&&z.pos<best.pos)))best=z;
-      }
-    }
-    return best?best.name:"";
-  }
+  // Idol tier from the game's recipes. Each entry is [name, internal name, W(eapon)/S(hield)/A(rmour)]
+  var AGES=[[["Club","Club","W"],["Crude Bow","Bow","W"],["Flint Knife","KnifeFlint","W"],["Flint Spear","SpearFlint","W"],["Stagbreaker","SledgeStagbreaker","W"],["Stone Axe","AxeStone","W"],["Wood Shield","ShieldWood","S"],["Wood Tower Shield","ShieldWoodTower","S"],["Deer Hide Cape","CapeDeerHide","A"],["Leather Helmet","HelmetLeather","A"],["Leather Trousers","ArmorLeatherLegs","A"],["Leather Tunic","ArmorLeatherChest","A"],["Rag Trousers","ArmorRagsLegs","A"],["Rag Tunic","ArmorRagsChest","A"]],[["Bronze Atgeir","AtgeirBronze","W"],["Bronze Mace","MaceBronze","W"],["Bronze Spear","SpearBronze","W"],["Bronze Sword","SwordBronze","W"],["Copper Knife","KnifeCopper","W"],["Finewood Bow","BowFineWood","W"],["Flint Axe","AxeFlint","W"],["Nord Atgeir","AtgeirGold","W"],["Paws of the Bear","FistBjornClaw","W"],["Voidcaller","KnifeVoid","W"],["Bone Tower Shield","ShieldBoneTower","S"],["Bronze Buckler","ShieldBronzeBuckler","S"],["Bronze Helmet","HelmetBronze","A"],["Bronze Plate Leggings","ArmorBronzeLegs","A"],["Bronze Plate Tunic","ArmorBronzeChest","A"],["Cape of Oden","CapeOdin","A"],["Hood of Oden","HelmetOdin","A"],["Loincloth of the Bear","ArmorBerserkerLegs","A"],["Patterns of the Bear","ArmorBerserkerChest","A"],["Troll Hide Cape","CapeTrollHide","A"],["Troll Leather Hood","HelmetTrollLeather","A"],["Troll Leather Trousers","ArmorTrollLeatherLegs","A"],["Troll Leather Tunic","ArmorTrollLeatherChest","A"]],[["Ancient Bark Spear","SpearElderbark","W"],["Battleaxe","Battleaxe","W"],["Bronze Axe","AxeBronze","W"],["Draugr Fang","BowDraugrFang","W"],["Early Axes","AxeEarly","W"],["Huntsman Bow","BowHuntsman","W"],["Iron Atgeir","AtgeirIron","W"],["Iron Mace","MaceIron","W"],["Iron Sledge","SledgeIron","W"],["Iron Sword","SwordIron","W"],["Nord Knucklechains","FistGold","W"],["Banded Shield","ShieldBanded","S"],["Iron Buckler","ShieldIronBuckler","S"],["Iron Shield","ShieldIronSquare","S"],["Iron Tower Shield","ShieldIronTower","S"],["Shield of Roots","ShieldRoots","S"],["Iron Greaves","ArmorIronLegs","A"],["Iron Helmet","HelmetIron","A"],["Iron Scale Mail","ArmorIronChest","A"],["Root Harnesk","ArmorRootChest","A"],["Root Leggings","ArmorRootLegs","A"],["Root Mask","HelmetRoot","A"]],[["Abyssal Razor","KnifeChitin","W"],["Crystal Battleaxe","BattleaxeCrystal","W"],["Fang Spear","SpearWolfFang","W"],["Flesh Rippers","FistFenrirClaw","W"],["Frostner","MaceSilver","W"],["Iron Axe","AxeIron","W"],["Silver Knife","KnifeSilver","W"],["Silver Sword","SwordSilver","W"],["Serpent Scale Shield","ShieldSerpentscale","S"],["Silver Shield","ShieldSilver","S"],["Drake Helmet","HelmetDrake","A"],["Fenris Coat","ArmorFenringChest","A"],["Fenris Hood","HelmetFenring","A"],["Fenris Leggings","ArmorFenringLegs","A"],["Wolf Fur Cape","CapeWolf","A"],["Wolf Hide Chestpiece","ArmorWolfChest","A"],["Wolf Hide Trousers","ArmorWolfLegs","A"]],[["Black Metal Atgeir","AtgeirBlackmetal","W"],["Black Metal Axe","AxeBlackMetal","W"],["Black Metal Battleaxe","BattleaxeBlackmetal","W"],["Black Metal Knife","KnifeBlackMetal","W"],["Black Metal Sword","SwordBlackmetal","W"],["Frostfire Axe","AxeGold_FrostFire","W"],["Jotun Bane","AxeJotunBane","W"],["Nord Axe","AxeGold","W"],["Porcupine","MaceNeedle","W"],["Skoll and Hati","KnifeSkollAndHati","W"],["Vilebone Maulclaws","FistBjornUndeadClaw","W"],["Black Metal Shield","ShieldBlackmetal","S"],["Black Metal Tower Shield","ShieldBlackmetalTower","S"],["Linen Cape","CapeLinen","A"],["Lox Cape","CapeLox","A"],["Lox Fur Hood","HelmetLox","A"],["Lox Fur Jacket","ArmorLoxChest","A"],["Lox Fur Trousers","ArmorLoxLegs","A"],["Padded Cuirass","ArmorPaddedCuirass","A"],["Padded Greaves","ArmorPaddedGreaves","A"],["Padded Helmet","HelmetPadded","A"],["Vilebone Cage","ArmorBerserkerUndeadChest","A"],["Vilebone Drapes","ArmorBerserkerUndeadLegs","A"],["Vilebone Visage","HelmetBerserkerUndead","A"]],[["Arbalest","CrossbowArbalest","W"],["Carapace Spear","SpearCarapace","W"],["Dead Raiser","StaffSkeleton","W"],["Demolisher","SledgeDemolisher","W"],["Himminafl","AtgeirHimminAfl","W"],["Krom","THSwordKrom","W"],["Mistwalker","SwordMistwalker","W"],["Skull Splittur","BattleaxeSkullSplittur","W"],["Spinesnap","BowSpineSnap","W"],["Splitnir","SpearSplitner","W"],["Splitnir the Bleeding","SpearSplitner_Blood","W"],["Splitnir the Primal","SpearSplitner_Nature","W"],["Splitnir the Storming","SpearSplitner_Lightning","W"],["Staff of Embers","StaffFireball","W"],["Staff of Frost","StaffIceShards","W"],["Staff of Protection","StaffShield","W"],["Carapace Buckler","ShieldCarapaceBuckler","S"],["Carapace Shield","ShieldCarapace","S"],["Carapace Breastplate","ArmorCarapaceChest","A"],["Carapace Greaves","ArmorCarapaceLegs","A"],["Carapace Helmet","HelmetCarapace","A"],["Eitr-weave Hood","HelmetMage","A"],["Eitr-weave Robe","ArmorMageChest","A"],["Eitr-weave Trousers","ArmorMageLegs","A"],["Feather Cape","CapeFeather","A"],["Headdress of the Bear","HelmetBerserkerHood","A"]],[["Ash Fang","BowAshlands","W"],["Berserkir Axes","AxeBerzerkr","W"],["Bleeding Berserkir Axes","AxeBerzerkrBlood","W"],["Blood Fang","BowAshlandsBlood","W"],["Bloodgeon","MaceEldnerBlood","W"],["Brutal Slayer","THSwordSlayerBlood","W"],["Dundr","StaffLightning","W"],["Dyrnwyn","SwordDyrnwyn","W"],["Flametal Mace","MaceEldner","W"],["Klossen","MaceEldnerNature","W"],["Nidhögg","SwordNiedhogg","W"],["Nidhögg the Bleeding","SwordNiedhoggBlood","W"],["Nidhögg the Primal","SwordNiedhoggNature","W"],["Nidhögg the Thundering","SwordNiedhoggLightning","W"],["Primal Berserkir Axes","AxeBerzerkrNature","W"],["Primal Slayer","THSwordSlayerNature","W"],["Ripper","CrossbowRipper","W"],["Root Fang","BowAshlandsRoot","W"],["Root Ripper","CrossbowRipperNature","W"],["Scourging Slayer","THSwordSlayerLightning","W"],["Slayer","THSwordSlayer","W"],["Staff of Fracturing","StaffClusterbomb","W"],["Staff of the Wild","StaffGreenRoots","W"],["Storm Fang","BowAshlandsStorm","W"],["Storm Ripper","CrossbowRipperLightning","W"],["Storm Star","MaceEldnerLightning","W"],["Thundering Berserkir Axes","AxeBerzerkrLightning","W"],["Trollstav","StaffRedTroll","W"],["Wound Ripper","CrossbowRipperBlood","W"],["Flametal Shield","ShieldFlametal","S"],["Flametal Tower Shield","ShieldFlametalTower","S"],["Ashen Cape","CapeAsh","A"],["Asksvin Cloak","CapeAsksvin","A"],["Breastplate of Ask","ArmorAshlandsMediumChest","A"],["Flametal Breastplate","ArmorFlametalChest","A"],["Flametal Greaves","ArmorFlametalLegs","A"],["Flametal Helmet","HelmetFlametal","A"],["Hood of Ask","HelmetAshlandsMediumHood","A"],["Hood of Embla","HelmetMage_Ashlands","A"],["Robes of Embla","ArmorMageChest_Ashlands","A"],["Trousers of Ask","ArmorAshlandsMediumlegs","A"],["Trousers of Embla","ArmorMageLegs_Ashlands","A"]],[["Echo Spike","StaffOrbofAhri","W"],["Frostfire Atgeir","AtgeirGold_FrostFire","W"],["Frostfire Bow","BowGold_FrostFire","W"],["Frostfire Crossbow","CrossbowGold_FrostFire","W"],["Frostfire Dagger","KnifeGold_FrostFire","W"],["Frostfire Greataxe","BattleaxeGold_FrostFire","W"],["Frostfire Greatsword","THSwordGold_FrostFire","W"],["Frostfire Knucklechains","FistGold_FrostFire","W"],["Frostfire Mace","MaceGold_FrostFire","W"],["Frostfire Sledge","SledgeGold_FrostFire","W"],["Frostfire Spear","SpearGold_FrostFire","W"],["Frostfire Sword","SwordGold_FrostFire","W"],["Lightning Strike","StaffThunderBlood","W"],["Nord Bow","BowGold","W"],["Nord Crossbow","CrossbowGold","W"],["Nord Dagger","KnifeGold","W"],["Nord Greataxe","BattleaxeGold","W"],["Nord Greatsword","THSwordGold","W"],["Nord Mace","MaceGold","W"],["Nord Sledge","SledgeGold","W"],["Nord Spear","SpearGold","W"],["Nord Sword","SwordGold","W"],["Northern Vengeance","StaffFrostOrbs","W"],["Spirit Caller","StaffSpiritCaller","W"],["Thunderblood Atgeir","AtgeirGold_BloodLightning","W"],["Thunderblood Axe","AxeGold_BloodLightning","W"],["Thunderblood Bow","BowGold_BloodLightning","W"],["Thunderblood Crossbow","CrossbowGold_BloodLightning","W"],["Thunderblood Dagger","KnifeGold_BloodLightning","W"],["Thunderblood Greataxe","BattleaxeGold_BloodLightning","W"],["Thunderblood Greatsword","THSwordGold_BloodLightning","W"],["Thunderblood Knucklechains","FistGold_BloodLightning","W"],["Thunderblood Mace","MaceGold_BloodLightning","W"],["Thunderblood Sledge","SledgeGold_BloodLightning","W"],["Thunderblood Spear","SpearGold_BloodLightning","W"],["Thunderblood Sword","SwordGold_BloodLightning","W"],["Nord Buckler","ShieldGoldBuckler","S"],["Nord Greatshield","ShieldGoldTower","S"],["Nord Shield","ShieldGold","S"],["Breastplate of the Protector","ArmorDeepNorthHeavyChest","A"],["Cape of the Caller","CapeDeepNorthMage","A"],["Chestpiece of the Vanguard","ArmorDeepNorthMediumChest","A"],["Headdress of the Caller","HelmetDNMage","A"],["Hood of the Vanguard","HelmetDNMediumHood","A"],["Moose Hide Cape","CapeDeepNorth","A"],["Robes of the Caller","ArmorDeepNorthMageChest","A"],["Trousers of the Caller","ArmorDeepNorthMagelegs","A"],["Trousers of the Protector","ArmorDeepNorthHeavylegs","A"],["Trousers of the Vanguard","ArmorDeepNorthMediumlegs","A"]]];
+  // Named by material, with the biome for anyone who thinks in biomes
+  var AGENAMES=[["Wood & flint","Meadows"],["Bronze","Black Forest"],["Iron","Swamp"],["Silver","Mountain"],["Black metal","Plains"],["Carapace","Mistlands"],["Flametal","Ashlands"],["Deep North","Deep North"]];
+  var KINDS={W:"Weapon",S:"Shield",A:"Armour"};
+  // Elder Futhark, letter by letter. Decoration only, so close enough is fine
+  var RUNES={a:"ᚨ",b:"ᛒ",c:"ᚲ",d:"ᛞ",e:"ᛖ",f:"ᚠ",g:"ᚷ",h:"ᚺ",i:"ᛁ",j:"ᛃ",k:"ᚲ",l:"ᛚ",m:"ᛗ",n:"ᚾ",o:"ᛟ",p:"ᛈ",q:"ᚲ",r:"ᚱ",s:"ᛊ",t:"ᛏ",u:"ᚢ",v:"ᚹ",w:"ᚹ",x:"ᚲᛊ",y:"ᛃ",z:"ᛉ","å":"ᚨ","ä":"ᚨ","æ":"ᚨ","ö":"ᛟ","ø":"ᛟ","þ":"ᚦ","ð":"ᚦ"," ":"᛫"};
   var $=function(id){return document.getElementById(id)};
-  var saved=null;
-  function store(k,v){try{if(v)localStorage.setItem(k,v);else localStorage.removeItem(k);}catch(e){}}
+  function store(k,v){try{localStorage.setItem(k,v);}catch(e){}}
   function recall(k){try{return localStorage.getItem(k)||"";}catch(e){return "";}}
-  // Save folders for each way of running the game. Steam Cloud saves live under Steam's userdata, local saves under the game's own data folder
-  var CLOUD="/userdata/<Steam ID>/892970/remote/characters",PFX="/steamapps/compatdata/892970/pfx/drive_c/users/steamuser/AppData/LocalLow/IronGate/Valheim/characters_local";
-  var SETUPS={
-    win:{paths:[["Steam Cloud saves","C:\\Program Files (x86)\\Steam\\userdata\\<Steam ID>\\892970\\remote\\characters"],["Local saves","%USERPROFILE%\\AppData\\LocalLow\\IronGate\\Valheim\\characters_local"]]},
-    linux:{paths:[["Steam Cloud saves","~/.local/share/Steam"+CLOUD],["Local saves","~/.config/unity3d/IronGate/Valheim/characters_local"]]},
-    proton:{paths:[["Steam Cloud saves","~/.local/share/Steam"+CLOUD],["Local saves","<Steam library>"+PFX]],library:true},
-    flatpak:{paths:[["Steam Cloud saves","~/.var/app/com.valvesoftware.Steam/.local/share/Steam"+CLOUD],["Local saves, native","~/.var/app/com.valvesoftware.Steam/.config/unity3d/IronGate/Valheim/characters_local"],["Local saves, Proton","~/.var/app/com.valvesoftware.Steam/.local/share/Steam"+PFX]]},
-    deck:{paths:[["Steam Cloud saves","/home/deck/.local/share/Steam"+CLOUD],["Local saves, native","/home/deck/.config/unity3d/IronGate/Valheim/characters_local"],["Local saves, Proton","/home/deck/.local/share/Steam"+PFX]]}
-  };
-  function guessSetup(){
-    var ua=navigator.userAgent,p=(navigator.userAgentData&&navigator.userAgentData.platform)||navigator.platform||"";
-    if(!/Linux/i.test(p+" "+ua)||/Android/i.test(ua))return "win";
-    return screen.width===1280&&screen.height===800?"deck":"linux";
+  function el(tag,cls,text){var e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e;}
+  function heat(l){return "h"+Math.max(4,Math.min(8,l));}
+  function runes(s){return Array.prototype.map.call(s.toLowerCase(),function(c){return RUNES[c]||"";}).join("");}
+
+  // Play the item from level 3: on a failure the item breaks, a new copy starts again at 3, and every step tried moves on to its next roll
+  function plan(nm,item){
+    var hn=hash(nm),hi=hash(item),seeds={},lvl=START,idols=0,lost=0,runs=[[]],reached={},safe=null;
+    while(lvl<GOAL&&lost<MAXLOST){
+      var to=lvl+1;
+      if(!(to in seeds))seeds[to]=(hn+hi+to)>>>0;
+      var r=rollNext(seeds[to]);seeds[to]=r.next;idols++;
+      var ok=Math.fround(r.roll)<=CHANCE;
+      runs[runs.length-1].push({from:lvl,to:to,ok:ok});
+      if(ok){lvl=to;if(!reached[lvl])reached[lvl]={idols:idols,lost:lost,run:runs.length-1};}
+      else{if(safe===null)safe=lvl;lost++;lvl=START;if(lost<MAXLOST)runs.push([]);}
+    }
+    if(safe===null)safe=lvl;
+    return {safe:safe,reached:reached,runs:runs};
   }
-  function fillPath(p){
-    var id=$("steamid").value.replace(/\D/g,""),lib=$("library").value.trim().replace(/\/+$/,"")||"~/.local/share/Steam";
-    if(id)p=p.replace("<Steam ID>",id);
-    return p.replace("<Steam library>",lib);
-  }
-  function copyText(t,btn){
-    function done(){btn.textContent="Copied";setTimeout(function(){btn.textContent="Copy";},1500);}
-    function fallback(){var ta=document.createElement("textarea");ta.value=t;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.select();try{document.execCommand("copy");done();}catch(e){}document.body.removeChild(ta);}
-    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(done,fallback);else fallback();
-  }
-  function renderWhere(){
-    var s=SETUPS[$("setup").value],box=$("wherePaths");box.innerHTML="";
-    $("libraryLabel").hidden=!s.library;
-    s.paths.forEach(function(p){
-      var path=fillPath(p[1]),cut=path.indexOf("<Steam ID>");
-      var row=document.createElement("div");row.className="wpath";
-      var b=document.createElement("b");b.textContent=p[0];
-      var m=document.createElement("span");m.className="mono";m.textContent=path;
-      var c=document.createElement("button");c.type="button";c.className="copy";c.textContent="Copy";
-      // Without a Steam ID, copy the part that exists so the picker can open it
-      c.onclick=function(){copyText(cut>=0?path.slice(0,cut):path,c);};
-      row.appendChild(b);row.appendChild(m);row.appendChild(c);box.appendChild(row);
+
+  function render(){
+    var nm=$("cname").value.trim(),age=recall("fo-age")||"all",box=$("list");
+    $("runes").textContent=runes(nm);
+    Array.prototype.forEach.call($("ages").children,function(b){b.setAttribute("aria-pressed",b.dataset.age===age?"true":"false");});
+    $("out").hidden=!nm;box.innerHTML="";
+    if(!nm)return;
+    $("heading").textContent="What "+nm+" can take highest"+(age==="all"?"":" in "+AGENAMES[+age][0]);
+    var rows=[];
+    AGES.forEach(function(xs,a){
+      if(age!=="all"&&String(a)!==age)return;
+      xs.forEach(function(x){rows.push({x:x,age:a,p:plan(nm,x[1])});});
     });
+    rows.sort(function(a,b){return b.p.safe-a.p.safe||a.x[0].localeCompare(b.x[0]);});
+    // Items that stop at 4 or below are rarely worth idols, so they wait behind a fold
+    var low=el("details","low"),lowN=0;
+    rows.forEach(function(r){
+      var row=itemRow(r,age==="all");
+      if(r.p.safe>4)box.appendChild(row);else{low.appendChild(row);lowN++;}
+    });
+    if(rows.length===lowN)box.appendChild(el("p",null,"Nothing in this age gets past level 4 without breaking. Open one below to see what a higher level costs."));
+    if(lowN){low.insertBefore(el("summary",null,"Show "+lowN+" item"+(lowN===1?"":"s")+" that stop at level 4 or lower"),low.firstChild);box.appendChild(low);if(rows.length===lowN)low.open=true;}
   }
-  (function(){
-    var sel=$("setup");sel.value=recall("fo-setup");if(!SETUPS[sel.value])sel.value=guessSetup();
-    $("steamid").value=recall("fo-steamid");$("library").value=recall("fo-library");
-    sel.addEventListener("change",function(){store("fo-setup",sel.value);renderWhere();});
-    $("steamid").addEventListener("input",function(){store("fo-steamid",this.value.replace(/\D/g,""));renderWhere();});
-    $("library").addEventListener("input",function(){store("fo-library",this.value.trim());renderWhere();});
-    renderWhere();
-  })();
-  var ITEMDATA={"Weapons":[["Abyssal Razor","KnifeChitin"],["Ancient Bark Spear","SpearElderbark"],["Arbalest","CrossbowArbalest"],["Ash Fang","BowAshlands"],["Battleaxe","Battleaxe"],["Berserkir Axes","AxeBerzerkr"],["Black Metal Atgeir","AtgeirBlackmetal"],["Black Metal Axe","AxeBlackMetal"],["Black Metal Battleaxe","BattleaxeBlackmetal"],["Black Metal Knife","KnifeBlackMetal"],["Black Metal Pickaxe","PickaxeBlackMetal"],["Black Metal Sword","SwordBlackmetal"],["Bleeding Berserkir Axes","AxeBerzerkrBlood"],["Blood Fang","BowAshlandsBlood"],["Bloodgeon","MaceEldnerBlood"],["Bronze Atgeir","AtgeirBronze"],["Bronze Axe","AxeBronze"],["Bronze Mace","MaceBronze"],["Bronze Pickaxe","PickaxeBronze"],["Bronze Spear","SpearBronze"],["Bronze Sword","SwordBronze"],["Brutal Slayer","THSwordSlayerBlood"],["Carapace Spear","SpearCarapace"],["Club","Club"],["Copper Knife","KnifeCopper"],["Crude Bow","Bow"],["Crystal Battleaxe","BattleaxeCrystal"],["Dead Raiser","StaffSkeleton"],["Demolisher","SledgeDemolisher"],["Draugr Fang","BowDraugrFang"],["Dundr","StaffLightning"],["Dyrnwyn","SwordDyrnwyn"],["Early Axes","AxeEarly"],["Echo Spike","StaffOrbofAhri"],["Fang Spear","SpearWolfFang"],["Finewood Bow","BowFineWood"],["Flametal Mace","MaceEldner"],["Flesh Rippers","FistFenrirClaw"],["Flint Axe","AxeFlint"],["Flint Knife","KnifeFlint"],["Flint Spear","SpearFlint"],["Frostfire Atgeir","AtgeirGold_FrostFire"],["Frostfire Axe","AxeGold_FrostFire"],["Frostfire Bow","BowGold_FrostFire"],["Frostfire Crossbow","CrossbowGold_FrostFire"],["Frostfire Dagger","KnifeGold_FrostFire"],["Frostfire Greataxe","BattleaxeGold_FrostFire"],["Frostfire Greatsword","THSwordGold_FrostFire"],["Frostfire Knucklechains","FistGold_FrostFire"],["Frostfire Mace","MaceGold_FrostFire"],["Frostfire Sledge","SledgeGold_FrostFire"],["Frostfire Spear","SpearGold_FrostFire"],["Frostfire Sword","SwordGold_FrostFire"],["Frostner","MaceSilver"],["Himminafl","AtgeirHimminAfl"],["Huntsman Bow","BowHuntsman"],["Iron Atgeir","AtgeirIron"],["Iron Axe","AxeIron"],["Iron Mace","MaceIron"],["Iron Pickaxe","PickaxeIron"],["Iron Sledge","SledgeIron"],["Iron Sword","SwordIron"],["Jotun Bane","AxeJotunBane"],["Klossen","MaceEldnerNature"],["Krom","THSwordKrom"],["Lightning Strike","StaffThunderBlood"],["Mistwalker","SwordMistwalker"],["Nidhögg","SwordNiedhogg"],["Nidhögg the Bleeding","SwordNiedhoggBlood"],["Nidhögg the Primal","SwordNiedhoggNature"],["Nidhögg the Thundering","SwordNiedhoggLightning"],["Nord Atgeir","AtgeirGold"],["Nord Axe","AxeGold"],["Nord Bow","BowGold"],["Nord Crossbow","CrossbowGold"],["Nord Dagger","KnifeGold"],["Nord Greataxe","BattleaxeGold"],["Nord Greatsword","THSwordGold"],["Nord Knucklechains","FistGold"],["Nord Mace","MaceGold"],["Nord Sledge","SledgeGold"],["Nord Spear","SpearGold"],["Nord Sword","SwordGold"],["Northern Vengeance","StaffFrostOrbs"],["Paws of the Bear","FistBjornClaw"],["Porcupine","MaceNeedle"],["Primal Berserkir Axes","AxeBerzerkrNature"],["Primal Slayer","THSwordSlayerNature"],["Ripper","CrossbowRipper"],["Root Fang","BowAshlandsRoot"],["Root Ripper","CrossbowRipperNature"],["Scourging Slayer","THSwordSlayerLightning"],["Scythe","Scythe"],["Silver Knife","KnifeSilver"],["Silver Sword","SwordSilver"],["Skoll and Hati","KnifeSkollAndHati"],["Skull Splittur","BattleaxeSkullSplittur"],["Slayer","THSwordSlayer"],["Snow Shovel","Shovel"],["Spinesnap","BowSpineSnap"],["Spirit Caller","StaffSpiritCaller"],["Splitnir","SpearSplitner"],["Splitnir the Bleeding","SpearSplitner_Blood"],["Splitnir the Primal","SpearSplitner_Nature"],["Splitnir the Storming","SpearSplitner_Lightning"],["Staff of Embers","StaffFireball"],["Staff of Fracturing","StaffClusterbomb"],["Staff of Frost","StaffIceShards"],["Staff of Protection","StaffShield"],["Staff of the Wild","StaffGreenRoots"],["Stagbreaker","SledgeStagbreaker"],["Stone Axe","AxeStone"],["Storm Fang","BowAshlandsStorm"],["Storm Ripper","CrossbowRipperLightning"],["Storm Star","MaceEldnerLightning"],["Thunderblood Atgeir","AtgeirGold_BloodLightning"],["Thunderblood Axe","AxeGold_BloodLightning"],["Thunderblood Bow","BowGold_BloodLightning"],["Thunderblood Crossbow","CrossbowGold_BloodLightning"],["Thunderblood Dagger","KnifeGold_BloodLightning"],["Thunderblood Greataxe","BattleaxeGold_BloodLightning"],["Thunderblood Greatsword","THSwordGold_BloodLightning"],["Thunderblood Knucklechains","FistGold_BloodLightning"],["Thunderblood Mace","MaceGold_BloodLightning"],["Thunderblood Sledge","SledgeGold_BloodLightning"],["Thunderblood Spear","SpearGold_BloodLightning"],["Thunderblood Sword","SwordGold_BloodLightning"],["Thundering Berserkir Axes","AxeBerzerkrLightning"],["Trollstav","StaffRedTroll"],["Vilebone Maulclaws","FistBjornUndeadClaw"],["Voidcaller","KnifeVoid"],["Wooden Atgeir","AtgeirWood"],["Wooden Axe","AxeWood"],["Wooden Battleaxe","BattleaxeWood"],["Wooden Greatsword","THSwordWood"],["Wooden Knife","KnifeWood"],["Wooden Mace","MaceWood"],["Wooden Sledge","SledgeWood"],["Wooden Spear","SpearWood"],["Wooden Sword","SwordWood"],["Wound Ripper","CrossbowRipperBlood"]],"Armour":[["Ashen Cape","CapeAsh"],["Asksvin Cloak","CapeAsksvin"],["Blue Dress with Beads","ArmorDress6"],["Blue Dress with Shawl","ArmorDress5"],["Blue Tied Headscarf","HelmetHat1"],["Blue Tunic with Beads","ArmorTunic3"],["Blue Tunic with Cape","ArmorTunic2"],["Breastplate of Ask","ArmorAshlandsMediumChest"],["Breastplate of the Protector","ArmorDeepNorthHeavyChest"],["Bronze Helmet","HelmetBronze"],["Bronze Plate Leggings","ArmorBronzeLegs"],["Bronze Plate Tunic","ArmorBronzeChest"],["Brown Dress with Beads","ArmorDress3"],["Brown Dress with Shawl","ArmorDress2"],["Brown Fur Cap","HelmetHat3"],["Cape of Oden","CapeOdin"],["Cape of the Caller","CapeDeepNorthMage"],["Carapace Breastplate","ArmorCarapaceChest"],["Carapace Greaves","ArmorCarapaceLegs"],["Carapace Helmet","HelmetCarapace"],["Celebratory Cap","HelmetCelebration"],["Chestpiece of the Vanguard","ArmorDeepNorthMediumChest"],["Deer Hide Cape","CapeDeerHide"],["Drake Helmet","HelmetDrake"],["Eitr-weave Hood","HelmetMage"],["Eitr-weave Robe","ArmorMageChest"],["Eitr-weave Trousers","ArmorMageLegs"],["Extravagant Green Cap","HelmetHat4"],["Extravagant Orange Cap","HelmetHat9"],["Feather Cape","CapeFeather"],["Fenris Coat","ArmorFenringChest"],["Fenris Hood","HelmetFenring"],["Fenris Leggings","ArmorFenringLegs"],["Fishing Hat","HelmetFishingHat"],["Flametal Breastplate","ArmorFlametalChest"],["Flametal Greaves","ArmorFlametalLegs"],["Flametal Helmet","HelmetFlametal"],["Green Twisted Headscarf","HelmetHat2"],["Grey Fur Cap","HelmetHat8"],["Harvest Dress","ArmorHarvester2"],["Harvest Tunic","ArmorHarvester1"],["Headdress of the Bear","HelmetBerserkerHood"],["Headdress of the Caller","HelmetDNMage"],["Hood of Ask","HelmetAshlandsMediumHood"],["Hood of Embla","HelmetMage_Ashlands"],["Hood of Oden","HelmetOdin"],["Hood of the Vanguard","HelmetDNMediumHood"],["Iron Greaves","ArmorIronLegs"],["Iron Helmet","HelmetIron"],["Iron Scale Mail","ArmorIronChest"],["Leather Helmet","HelmetLeather"],["Leather Trousers","ArmorLeatherLegs"],["Leather Tunic","ArmorLeatherChest"],["Linen Cape","CapeLinen"],["Loincloth of the Bear","ArmorBerserkerLegs"],["Lox Cape","CapeLox"],["Lox Fur Hood","HelmetLox"],["Lox Fur Jacket","ArmorLoxChest"],["Lox Fur Trousers","ArmorLoxLegs"],["Moose Hide Cape","CapeDeepNorth"],["Padded Cuirass","ArmorPaddedCuirass"],["Padded Greaves","ArmorPaddedGreaves"],["Padded Helmet","HelmetPadded"],["Patterns of the Bear","ArmorBerserkerChest"],["Plain Blue Dress","ArmorDress4"],["Plain Blue Tunic","ArmorTunic1"],["Plain Brown Dress","ArmorDress1"],["Plain Red Tunic","ArmorTunic4"],["Plain Yellow Dress","ArmorDress7"],["Plain Yellow Tunic","ArmorTunic7"],["Pointy Hat","HelmetPointyHat"],["Rag Trousers","ArmorRagsLegs"],["Rag Tunic","ArmorRagsChest"],["Red Tunic with Beads","ArmorTunic6"],["Red Tunic with Cape","ArmorTunic5"],["Red Twisted Headscarf","HelmetHat7"],["Robes of Embla","ArmorMageChest_Ashlands"],["Robes of the Caller","ArmorDeepNorthMageChest"],["Root Harnesk","ArmorRootChest"],["Root Leggings","ArmorRootLegs"],["Root Mask","HelmetRoot"],["Simple Purple Cap","HelmetHat10"],["Simple Red Cap","HelmetHat5"],["Simple Undyed Dress","ArmorDress10"],["Simple Undyed Tunic","ArmorTunic10"],["Straw Hat","HelmetStrawHat"],["Troll Hide Cape","CapeTrollHide"],["Troll Leather Hood","HelmetTrollLeather"],["Troll Leather Trousers","ArmorTrollLeatherLegs"],["Troll Leather Tunic","ArmorTrollLeatherChest"],["Trousers of Ask","ArmorAshlandsMediumlegs"],["Trousers of Embla","ArmorMageLegs_Ashlands"],["Trousers of the Caller","ArmorDeepNorthMagelegs"],["Trousers of the Protector","ArmorDeepNorthHeavylegs"],["Trousers of the Vanguard","ArmorDeepNorthMediumlegs"],["Vilebone Cage","ArmorBerserkerUndeadChest"],["Vilebone Drapes","ArmorBerserkerUndeadLegs"],["Vilebone Visage","HelmetBerserkerUndead"],["Wolf Fur Cape","CapeWolf"],["Wolf Hide Chestpiece","ArmorWolfChest"],["Wolf Hide Trousers","ArmorWolfLegs"],["Yellow Dress with Beads","ArmorDress9"],["Yellow Dress with Shawl","ArmorDress8"],["Yellow Tied Headscarf","HelmetHat6"],["Yellow Tunic with Beads","ArmorTunic9"],["Yellow Tunic with Cape","ArmorTunic8"]],"Shields":[["Banded Shield","ShieldBanded"],["Black Metal Shield","ShieldBlackmetal"],["Black Metal Tower Shield","ShieldBlackmetalTower"],["Bone Tower Shield","ShieldBoneTower"],["Bronze Buckler","ShieldBronzeBuckler"],["Carapace Buckler","ShieldCarapaceBuckler"],["Carapace Shield","ShieldCarapace"],["Flametal Shield","ShieldFlametal"],["Flametal Tower Shield","ShieldFlametalTower"],["Iron Buckler","ShieldIronBuckler"],["Iron Shield","ShieldIronSquare"],["Iron Tower Shield","ShieldIronTower"],["Nord Buckler","ShieldGoldBuckler"],["Nord Greatshield","ShieldGoldTower"],["Nord Shield","ShieldGold"],["Serpent Scale Shield","ShieldSerpentscale"],["Shield of Roots","ShieldRoots"],["Silver Shield","ShieldSilver"],["Wood Shield","ShieldWood"],["Wood Tower Shield","ShieldWoodTower"]],"Tools":[["Cultivator","Cultivator"],["Hammer","Hammer"],["Hoe","Hoe"],["Serving Tray","Feaster"]]};
-  var NAME={},ALL=[];
-  Object.keys(ITEMDATA).forEach(function(g){ITEMDATA[g].forEach(function(p){NAME[p[1]]=p[0];ALL.push({g:g,n:p[0],i:p[1]});});});
-  var known={};ALL.forEach(function(x){for(var l=1;l<=30;l++)known[(hash(x.i)+l)>>>0]={item:x.i,level:l};});
-  var refGroup="All";
-  function renderRef(){
-    var q=$("refq").value.trim().toLowerCase(),box=$("reflist");box.innerHTML="";
-    ALL.filter(function(x){return (refGroup==="All"||x.g===refGroup)&&(!q||x.n.toLowerCase().indexOf(q)>=0||x.i.toLowerCase().indexOf(q)>=0);})
-      .sort(function(a,b){return a.n.localeCompare(b.n);})
-      .forEach(function(x){
-        var b=document.createElement("button");b.type="button";b.className="ref-row";
-        var n=document.createElement("span");n.textContent=x.n;
-        var i=document.createElement("span");i.className="mono";i.textContent=x.i;
-        b.appendChild(n);b.appendChild(i);
-        b.onclick=function(){$("item").value=x.i;run();$("item").scrollIntoView({block:"center"});};
-        box.appendChild(b);
+
+  function itemRow(r,showAge){
+    var p=r.p,d=el("details","item "+heat(p.safe)),s=el("summary");
+    var w=el("span","heat");w.appendChild(el("span","ingot",p.safe>=GOAL?GOAL+"+":p.safe));
+    var t=el("span");
+    t.appendChild(el("span","nm",r.x[0]));
+    var sub=KINDS[r.x[2]];
+    if(showAge)sub+=", "+AGENAMES[r.age][0];
+    if(p.safe===START)sub+=". Breaks going to level 4";
+    t.appendChild(el("span","sub",sub));
+    s.appendChild(w);s.appendChild(t);d.appendChild(s);
+    // Built on first open, so a long list stays quick
+    d.addEventListener("toggle",function(){if(d.open&&d.children.length===1)d.appendChild(detail(p));});
+    return d;
+  }
+
+  function detail(p){
+    var b=el("div","body");
+    if(p.safe>START)b.appendChild(el("p",null,"Up to level "+p.safe+" there's no risk. Just use the idols."));
+    if(p.safe>=GOAL){b.appendChild(el("p",null,"It goes all the way to "+GOAL+" without breaking."));return b;}
+    var levels=[];for(var l=p.safe+1;l<=GOAL;l++)if(p.reached[l])levels.push(l);
+    if(!levels.length){b.appendChild(el("p",null,"Going past "+p.safe+" takes more than "+MAXLOST+" broken items."));return b;}
+    b.appendChild(el("p",null,"Aim for level"));
+    var chips=el("div","targets"),out=el("div");
+    levels.forEach(function(l){
+      var c=el("button","target");c.type="button";
+      c.appendChild(el("span",null,String(l)));
+      var lost=p.reached[l].lost;c.appendChild(el("small",null,lost+" lost"));
+      c.onclick=function(){Array.prototype.forEach.call(chips.children,function(x){x.setAttribute("aria-pressed",x===c?"true":"false");});showRoute(p,l,out);};
+      chips.appendChild(c);
+    });
+    b.appendChild(chips);b.appendChild(out);
+    chips.firstChild.click();
+    return b;
+  }
+
+  // The runs to follow for one target level, cut off at the attempt that reaches it
+  function showRoute(p,target,out){
+    out.innerHTML="";
+    var c=p.reached[target];
+    out.appendChild(el("p",null,"Level "+target+" uses "+c.idols+" idols and breaks "+c.lost+" item"+(c.lost===1?"":"s")+" on the way. Each run is one copy of the item, starting at level 3. Follow them in order:"));
+    var runs=el("div","runs");
+    for(var i=0;i<=c.run;i++){
+      var row=el("div","run");row.appendChild(el("b",null,"Run "+(i+1)));
+      p.runs[i].forEach(function(s){
+        if(i===c.run&&s.from>=target)return;
+        row.appendChild(el("span",(s.ok?"ok":"bad")+(i===c.run&&s.to===target?" goal":""),s.from+"→"+s.to+(s.ok?" ✓":" ✗")));
       });
-    if(!box.children.length){var e=document.createElement("p");e.className="note";e.textContent="No matching items.";box.appendChild(e);}
+      runs.appendChild(row);
+    }
+    out.appendChild(runs);
   }
+
   (function(){
-    var tabs=$("reftabs");
-    ["All"].concat(Object.keys(ITEMDATA)).forEach(function(g){
-      var t=document.createElement("button");t.type="button";t.className="tab";t.textContent=g;t.setAttribute("aria-pressed",g==="All"?"true":"false");
-      t.onclick=function(){refGroup=g;Array.prototype.forEach.call(tabs.children,function(c){c.setAttribute("aria-pressed",c===t?"true":"false");});renderRef();};
-      tabs.appendChild(t);
+    var box=$("ages");
+    [["all","All ages",""]].concat(AGENAMES.map(function(a,i){return [String(i),a[0],a[1]];})).forEach(function(a){
+      var b=el("button","age",a[1]);b.type="button";b.dataset.age=a[0];if(a[2])b.title=a[2];
+      b.onclick=function(){store("fo-age",a[0]);render();};
+      box.appendChild(b);
     });
-    $("refq").addEventListener("input",renderRef);renderRef();
+    $("cname").value=recall("fo-name");
+    $("cname").addEventListener("input",function(){store("fo-name",this.value.trim());render();});
+    render();
   })();
-
-  function status(msg,warn){var e=$("fileStatus");e.textContent=msg;e.hidden=!msg;e.className="status"+(warn?" warn":"");}
-
-  function loadFile(f){
-    if(!f)return;
-    var fr=new FileReader();
-    fr.onload=function(){
-      var buf=fr.result;
-      try{saved=readSlots(buf);}catch(err){saved=null;status(err.message,true);return;}
-      var d=$("drop");d.classList.add("loaded");
-      d.innerHTML="<strong></strong><span class='mono'></span>";
-      d.firstChild.textContent=f.name;d.lastChild.textContent="save version "+saved.version+" · click to replace";
-      $("again").hidden=true;
-      if(handle&&handle.name===f.name){
-        var rb=document.createElement("button");rb.type="button";rb.className="reload";rb.textContent="Reload";rb.title="Read this file again after the game saves";
-        rb.onclick=function(e){e.stopPropagation();readHandle(handle);};
-        d.appendChild(rb);
-      }
-      if(saved.old){status("This save is from before the Forge seeds were stored (version "+saved.version+"). Predictions will start from the character's initial seeds.",true);}
-      else if(!saved.found){status("Could not find the Forge seed table in this file. The format may have changed in a newer patch.",true);}
-      else{status(saved.count+" Forge seed"+(saved.count===1?"":"s")+" found in the save.",false);}
-      if(window.crypto&&crypto.subtle){
-        var dvv=new DataView(buf),n=dvv.getUint32(0,true);
-        if(n+4+4+64<=buf.byteLength){crypto.subtle.digest("SHA-512",buf.slice(4,4+n)).then(function(h){
-          var a=new Uint8Array(h),b=new Uint8Array(buf,8+n,64),same=true;for(var i=0;i<64;i++)if(a[i]!==b[i]){same=false;break;}
-          if(!same)status($("fileStatus").textContent+" The file's checksum did not match, so it may be damaged or edited.",true);
-        });}
-      }
-      var dn=detectName(buf);
-      if(dn){$("cname").value=dn;$("nameHint").textContent="(read from your save, edit if wrong)";}
-      else{$("nameHint").textContent="(could not be read, enter it yourself)";}
-      renderSlots();run();
-    };
-    fr.onerror=function(){status("The file could not be read.",true);};
-    fr.readAsArrayBuffer(f);
-  }
-
-  function renderSlots(){
-    var sec=$("slotsSec"),box=$("slots");box.innerHTML="";
-    if(!saved||!saved.found){sec.hidden=true;return;}
-    var keys=Object.keys(saved.slots).map(Number),unknown=0;
-    keys.forEach(function(k){
-      var m=known[k>>>0];
-      if(!m){unknown++;return;}
-      var btn=document.createElement("button");btn.type="button";btn.className="slot";
-      btn.textContent=(NAME[m.item]||m.item)+" → level "+m.level;
-      btn.onclick=function(){$("item").value=m.item;$("level").value=m.level-1;run();};
-      box.appendChild(btn);
-    });
-    $("slotsNote").textContent=keys.length===0?"No Forge attempts are stored in this save yet. Predictions start from the character's initial seeds.":
-      unknown?unknown+" more seed"+(unknown===1?"":"s")+" belong to items outside the built-in list. Type their internal name below to see them.":"";
-    sec.hidden=false;
-  }
-
-  var rl=$("refLink");if(rl)rl.addEventListener("click",function(e){e.preventDefault();$("ref").open=true;$("ref").scrollIntoView({block:"start"});});
-  function classify(r){return r<=0.65?"S":"F";}
-  var LABEL={S:"Success",F:"Fail"};
-
-  function run(){
-    var item=$("item").value.trim(),cur=parseInt($("level").value,10),out=$("out");
-    if(!item||isNaN(cur)||cur<0){out.hidden=true;return;}
-    var nm=$("cname").value.trim(),rows=[],from={},needName=false,n,lv,key,seed,r;
-    for(n=1;n<=10;n++){
-      lv=cur+n;key=(hash(item)+lv)>>>0;
-      if(saved&&saved.found&&Object.prototype.hasOwnProperty.call(saved.slots,key)){seed=saved.slots[key];from[lv]="save";}
-      else if(nm){seed=(hash(nm)+key)>>>0;from[lv]="fresh";}
-      else{needName=true;break;}
-      r=rollNext(seed);rows.push({n:n,a:lv-1,b:lv,roll:r.roll,c:classify(r.roll)});
-    }
-    out.hidden=false;
-    var box=$("paths");box.innerHTML="";
-    if(needName){
-      $("summary").textContent="Enter your character name";
-      $("source").textContent="Some of these levels have no stored seed yet, so their first roll comes from your character name.";
-      return;
-    }
-    var fr=Object.keys(from).filter(function(l){return from[l]==="fresh";}).length;
-    $("source").textContent=fr?"Levels not yet attempted start from your character name. The rest come from your save.":"All of these levels were read from your save.";
-    rows.forEach(function(x){
-      var li=document.createElement("div");li.className="line "+x.c;
-      var a=document.createElement("span");a.textContent=x.n;
-      var lvl=document.createElement("span");lvl.textContent=x.a+" → "+x.b;
-      var b=document.createElement("b");b.textContent=LABEL[x.c];
-      var m=document.createElement("small");m.textContent="roll "+x.roll.toFixed(4);
-      li.appendChild(a);li.appendChild(lvl);li.appendChild(b);li.appendChild(m);box.appendChild(li);
-    });
-    var stop=rows.find(function(x){return x.c!=="S";}),sum;
-    if(!stop)sum="Every one of these ten upgrades succeeds, taking the item from level "+cur+" to "+(cur+10)+".";
-    else if(stop.n===1)sum="The first upgrade fails and breaks the item.";
-    else sum="The item climbs from level "+cur+" to "+stop.a+", then "+"breaks on the "+stop.a+" to "+stop.b+" upgrade.";
-    $("summary").textContent=sum;
-  }
-
-  // Chrome, Edge and Brave can keep a handle to the save: the picker then reopens in its folder, and the same file can be read again after the game saves
-  var drop=$("drop"),fi=$("file"),handle=null,FSA=typeof window.showOpenFilePicker==="function";
-  function idb(mode,fn){
-    return new Promise(function(res,rej){
-      var r=indexedDB.open("forge-oracle",1);
-      r.onupgradeneeded=function(){r.result.createObjectStore("kv");};
-      r.onerror=function(){rej(r.error);};
-      r.onsuccess=function(){var tx=r.result.transaction("kv",mode),q=fn(tx.objectStore("kv"));tx.oncomplete=function(){res(q.result);};tx.onerror=function(){rej(tx.error);};};
-    });
-  }
-  function keepHandle(h){handle=h;try{idb("readwrite",function(s){return s.put(h,"save");}).catch(function(){});}catch(e){}}
-  function readHandle(h){
-    h.queryPermission({mode:"read"})
-      .then(function(p){return p==="granted"?p:h.requestPermission({mode:"read"});})
-      .then(function(p){if(p!=="granted")throw new Error();return h.getFile();})
-      .then(function(f){handle=h;loadFile(f);},function(){status("Could not read "+h.name+" again. Choose it with the picker instead.",true);});
-  }
-  function pick(){
-    if(!FSA){fi.click();return;}
-    var opts={id:"valheim-characters",types:[{description:"Valheim character",accept:{"application/octet-stream":[".fch"]}}]};
-    if(handle)opts.startIn=handle;
-    window.showOpenFilePicker(opts)
-      .then(function(hs){keepHandle(hs[0]);return hs[0].getFile();})
-      .then(loadFile,function(e){if(!e||e.name!=="AbortError")fi.click();});
-  }
-  drop.addEventListener("click",pick);
-  drop.addEventListener("keydown",function(e){if(e.target!==drop)return;if(e.key==="Enter"||e.key===" "){e.preventDefault();pick();}});
-  fi.addEventListener("change",function(){handle=null;loadFile(fi.files[0]);});
-  ["dragenter","dragover"].forEach(function(t){drop.addEventListener(t,function(e){e.preventDefault();drop.classList.add("over");});});
-  ["dragleave","drop"].forEach(function(t){drop.addEventListener(t,function(e){e.preventDefault();drop.classList.remove("over");});});
-  drop.addEventListener("drop",function(e){
-    var f=e.dataTransfer.files[0],it=e.dataTransfer.items&&e.dataTransfer.items[0];
-    handle=null;
-    if(it&&it.getAsFileSystemHandle){
-      it.getAsFileSystemHandle().then(function(h){if(h&&h.kind==="file")keepHandle(h);}).catch(function(){}).then(function(){loadFile(f);});
-    }else loadFile(f);
-  });
-  // Offer the last save picked on this browser
-  if(FSA&&window.indexedDB){
-    try{idb("readonly",function(s){return s.get("save");}).then(function(h){
-      if(!h||handle)return;
-      handle=h;$("againBtn").textContent="Load "+h.name+" again";$("again").hidden=false;
-    }).catch(function(){});}catch(e){}
-  }
-  $("againBtn").addEventListener("click",function(){if(handle)readHandle(handle);});
-
-  var fbusy=false;
-  function finder(){
-    if(fbusy)return;
-    var item=$("item").value.trim(),cur=parseInt($("level").value,10),maxLen=parseInt($("fmax").value,10);
-    var prog=$("fprog"),res=$("fres");res.innerHTML="";$("fnote").hidden=true;
-    if(!item||isNaN(cur)||cur<0){prog.textContent="Enter an item and its current level first.";return;}
-    var ih=hash(item),UP="ABCDEFGHIJKLMNOPQRSTUVWXYZ",LO="abcdefghijklmnopqrstuvwxyz";
-    function streak(nm){var hn=hash(nm),n=0;while(n<20){var key=(ih+cur+1+n)>>>0;if(rollNext((hn+key)>>>0).roll>0.65)break;n++;}return n;}
-    function nameAt(len,i){var s="",d;for(d=0;d<len-1;d++){s=LO[i%26]+s;i=Math.floor(i/26);}return UP[i]+s;}
-    var best=[],total=0,len,count=[],L;
-    for(L=3;L<=maxLen;L++){count[L]=Math.pow(26,L);total+=count[L];}
-    var done=0,idx=0;len=3;fbusy=true;$("fgo").disabled=true;
-    function tick(){
-      var stopAt=Date.now()+40;
-      while(len<=maxLen&&Date.now()<stopAt){
-        var nm=nameAt(len,idx),k=streak(nm);
-        if(k>=1&&(best.length<10||k>best[best.length-1].k)){best.push({k:k,nm:nm});best.sort(function(a,b){return b.k-a.k;});if(best.length>10)best.pop();}
-        idx++;done++;
-        if(idx>=count[len]){len++;idx=0;}
-      }
-      prog.textContent="Searching… "+Math.floor(done/total*100)+"%";
-      if(len<=maxLen){setTimeout(tick,0);return;}
-      fbusy=false;$("fgo").disabled=false;prog.textContent="Checked "+total.toLocaleString()+" names.";
-      if(!best.length){prog.textContent+=" None succeeded on the first upgrade.";return;}
-      best.forEach(function(x){
-        var b=document.createElement("button");b.type="button";b.className="frow";
-        var a=document.createElement("b");a.textContent=x.k+" in a row";
-        var c=document.createElement("span");c.textContent=x.nm;
-        b.appendChild(c);b.appendChild(a);b.style.gridTemplateColumns="1fr auto";
-        b.addEventListener("click",function(){$("cname").value=x.nm;$("nameHint").textContent="(from the name finder)";run();$("out").scrollIntoView({block:"start"});});
-        res.appendChild(b);
-      });
-      $("fnote").hidden=false;
-    }
-    tick();
-  }
-  $("fgo").addEventListener("click",finder);
-  ["item","level","cname"].forEach(function(id){$(id).addEventListener("input",run);});
-
-  // Item picker: opens on click like a dropdown, and filters by name or internal ID as you type. Unlisted names can still be typed
-  (function(){
-    var inp=$("item"),list=$("itemList"),btn=$("itemBtn"),opts=[],act=-1,filtering=false;
-    function highlight(){
-      opts.forEach(function(o,i){o.el.setAttribute("aria-selected",i===act?"true":"false");});
-      if(act<0){inp.removeAttribute("aria-activedescendant");return;}
-      var el=opts[act].el;inp.setAttribute("aria-activedescendant",el.id);
-      if(el.offsetTop<list.scrollTop+30)list.scrollTop=el.offsetTop-30;
-      else if(el.offsetTop+el.offsetHeight>list.scrollTop+list.clientHeight)list.scrollTop=el.offsetTop+el.offsetHeight-list.clientHeight;
-    }
-    function show(){
-      var q=filtering?inp.value.trim().toLowerCase():"",cur=inp.value.trim();
-      list.innerHTML="";opts=[];act=-1;
-      Object.keys(ITEMDATA).forEach(function(g){
-        var xs=ALL.filter(function(x){return x.g===g&&(!q||x.n.toLowerCase().indexOf(q)>=0||x.i.toLowerCase().indexOf(q)>=0);})
-          .sort(function(a,b){return a.n.localeCompare(b.n);});
-        if(!xs.length)return;
-        var h=document.createElement("div");h.className="combo-group";h.setAttribute("role","presentation");h.textContent=g;list.appendChild(h);
-        xs.forEach(function(x){
-          var o=document.createElement("div");o.className="combo-opt";o.id="itemOpt"+opts.length;o.setAttribute("role","option");
-          var n=document.createElement("span");n.textContent=x.n;
-          var i=document.createElement("span");i.className="mono";i.textContent=x.i;
-          o.appendChild(n);o.appendChild(i);
-          o.addEventListener("mousedown",function(e){e.preventDefault();choose(x.i);});
-          if(x.i===cur)act=opts.length;
-          opts.push({el:o,x:x});list.appendChild(o);
-        });
-      });
-      if(!opts.length){var e=document.createElement("div");e.className="combo-empty";e.textContent="No matching items. An internal name that isn't listed still works.";list.appendChild(e);}
-      if(filtering&&act<0&&opts.length)act=0;
-      list.hidden=false;inp.setAttribute("aria-expanded","true");
-      list.scrollTop=act>=0?opts[act].el.offsetTop-list.clientHeight/2:0;
-      highlight();
-    }
-    function hide(){list.hidden=true;filtering=false;inp.setAttribute("aria-expanded","false");inp.removeAttribute("aria-activedescendant");}
-    function choose(id){inp.value=id;hide();run();}
-    // Accept a display name typed in full, eg "frostner"
-    function normalise(){
-      var v=inp.value.trim().toLowerCase(),m=ALL.filter(function(x){return x.n.toLowerCase()===v;})[0];
-      if(m&&inp.value!==m.i){inp.value=m.i;run();}
-    }
-    inp.addEventListener("click",function(){if(list.hidden)show();});
-    inp.addEventListener("input",function(){filtering=true;show();});
-    inp.addEventListener("blur",function(){hide();normalise();});
-    inp.addEventListener("keydown",function(e){
-      if(e.key==="ArrowDown"||e.key==="ArrowUp"){
-        e.preventDefault();
-        if(list.hidden){show();return;}
-        if(!opts.length)return;
-        act=e.key==="ArrowDown"?Math.min(act+1,opts.length-1):Math.max(act-1,0);highlight();
-      }else if(e.key==="Enter"){
-        if(!list.hidden&&act>=0){e.preventDefault();choose(opts[act].x.i);}else normalise();
-      }else if(e.key==="Escape"&&!list.hidden){e.preventDefault();hide();}
-    });
-    btn.addEventListener("mousedown",function(e){e.preventDefault();});
-    btn.addEventListener("click",function(){if(list.hidden){filtering=false;inp.focus();show();}else hide();});
-  })();
-  run();
 })();
 </script>
-
 </body>
 </html>
