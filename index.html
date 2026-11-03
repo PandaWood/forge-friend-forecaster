@@ -44,6 +44,7 @@ main>*,.controls>*,.output>*{min-width:0}
   header{grid-column:1/-1}
   .controls{gap:32px}
   .controls .who{grid-template-columns:1fr}
+  header .lede{max-width:88ch}
 }
 @media (min-width:1080px) and (min-height:760px){.controls{position:sticky;top:32px}}
 /* The font shorthand resets figure style, so restate lining figures for everything inside */
@@ -52,6 +53,8 @@ body *{font-variant-numeric:lining-nums tabular-nums}
 header h1{font:400 clamp(44px,11vw,72px)/1 var(--title);margin:0;color:var(--ash)}
 .runes{font:22px/1.2 var(--rune);letter-spacing:.18em;color:var(--amber);margin:12px 0 0;min-height:1.2em;overflow-wrap:anywhere}
 .lede{color:var(--slag);margin:16px 0 0;max-width:52ch}
+.lede+.lede{margin-top:8px}
+.lede a{color:var(--ash);text-underline-offset:3px}
 
 .field{display:grid;gap:8px}
 .field>span{font-size:16px;color:var(--slag)}
@@ -144,6 +147,7 @@ details.how p{margin:12px 0;font-size:16px;max-width:60ch}
     <h1>Forge Friend Forecaster</h1>
     <p class="runes" id="runes" aria-hidden="true"></p>
     <p class="lede">Every roll at the Forge of Potential is fixed by your character's name. Type it in to see which weapons and armour will take your idols furthest.</p>
+    <p class="lede">Your character's name is all it needs, as long as you haven't tried the Forge on that item yet. If you have, use <a href="https://github.com/papptimus/Forge-Oracle">Forge Oracle</a> instead and give it your character file.</p>
   </header>
 
   <div class="controls">
