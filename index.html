@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Forge Friend Forecaster</title>
 <meta name="color-scheme" content="dark light">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Uncial+Antiqua&family=Vollkorn:wght@400;500;700&family=Noto+Sans+Runic&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Uncial+Antiqua&family=Vollkorn:wght@400;500;600&family=Noto+Sans+Runic&display=swap">
 <style>
 /* The smithy at night. An item's level is shown as the colour of heated iron: cold grey, cherry, orange, yellow, white-hot. */
 :root{
@@ -13,30 +13,39 @@
   --good:#8fbf72; --bad:#e2674e;
   --h4:#625c55; --h5:#9e2f1c; --h6:#e2611b; --h7:#f6b42c; --h8:#fff0bf;
   --on4:#ebe4d8; --on5:#fbe7dc; --on6:#1f1c19; --on7:#1f1c19; --on8:#1f1c19;
-  --glow:1;
+  --glow:1; --ease:cubic-bezier(.22,1,.36,1);
   --onamber:#1f1c19;
   --title:"Uncial Antiqua",Georgia,serif; --body:"Vollkorn",Georgia,serif; --rune:"Noto Sans Runic",sans-serif;
   color-scheme:dark;
 }
 /* Light: cool stone, not parchment. Heat colours deepen so they hold up on a pale ground */
 @media (prefers-color-scheme:light){:root:not([data-theme="dark"]){
-  --soot:#dedcd7; --anvil:#ecebe7; --iron:#c3beb5; --ash:#26221d; --slag:#5f584f; --amber:#a65c08; --onamber:#fff;
-  --good:#3d7a2a; --bad:#a8301c;
-  --h4:#8b857c; --h5:#9a2b19; --h6:#cf5413; --h7:#e09a10; --h8:#f5cf55;
+  --soot:#dedcd7; --anvil:#ecebe7; --iron:#c3beb5; --ash:#26221d; --slag:#5f584f; --amber:#8f4e06; --onamber:#fff;
+  --good:#356b23; --bad:#a8301c;
+  --h4:#79736b; --h5:#9a2b19; --h6:#bd4a10; --h7:#e09a10; --h8:#f5cf55;
   --on4:#fff; --on5:#fff; --on6:#fff; --on7:#26221d; --on8:#26221d;
   --glow:.45; color-scheme:light}}
 :root[data-theme="light"]{
-  --soot:#dedcd7; --anvil:#ecebe7; --iron:#c3beb5; --ash:#26221d; --slag:#5f584f; --amber:#a65c08; --onamber:#fff;
-  --good:#3d7a2a; --bad:#a8301c;
-  --h4:#8b857c; --h5:#9a2b19; --h6:#cf5413; --h7:#e09a10; --h8:#f5cf55;
+  --soot:#dedcd7; --anvil:#ecebe7; --iron:#c3beb5; --ash:#26221d; --slag:#5f584f; --amber:#8f4e06; --onamber:#fff;
+  --good:#356b23; --bad:#a8301c;
+  --h4:#79736b; --h5:#9a2b19; --h6:#bd4a10; --h7:#e09a10; --h8:#f5cf55;
   --on4:#fff; --on5:#fff; --on6:#fff; --on7:#26221d; --on8:#26221d;
   --glow:.45; color-scheme:light}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 body{background:var(--soot);color:var(--ash);font:19px/1.55 var(--body);font-variant-numeric:lining-nums tabular-nums;margin:0;
   padding-block:40px 72px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-main{max-width:640px;margin:0 auto;display:grid;gap:36px}
-main>*{min-width:0}
+main{max-width:640px;margin:0 auto;display:grid;gap:40px}
+main>*,.controls>*,.output>*{min-width:0}
+.controls,.output{display:grid;gap:40px;align-content:start}
+/* Wide screens: the title runs across, the inputs stay in a column on the left and the results get the rest */
+@media (min-width:1080px){
+  main{max-width:1240px;grid-template-columns:400px minmax(0,1fr);gap:48px 64px;align-items:start}
+  header{grid-column:1/-1}
+  .controls{gap:32px}
+  .controls .who{grid-template-columns:1fr}
+}
+@media (min-width:1080px) and (min-height:760px){.controls{position:sticky;top:32px}}
 /* The font shorthand resets figure style, so restate lining figures for everything inside */
 body *{font-variant-numeric:lining-nums tabular-nums}
 
@@ -45,28 +54,29 @@ header h1{font:400 clamp(44px,11vw,72px)/1 var(--title);margin:0;color:var(--ash
 .lede{color:var(--slag);margin:16px 0 0;max-width:52ch}
 
 .field{display:grid;gap:8px}
-.field>span{font-size:17px;color:var(--slag)}
-input{font:500 24px var(--body);color:var(--ash);background:var(--anvil);border:1px solid var(--iron);border-bottom:3px solid var(--iron);border-radius:3px;padding:10px 14px;width:100%;max-width:420px}
+.field>span{font-size:16px;color:var(--slag)}
+input{font:500 22px var(--body);color:var(--ash);background:var(--anvil);border:1px solid var(--iron);border-bottom:3px solid var(--iron);border-radius:3px;padding:8px 12px;width:100%;max-width:420px;transition:border-color .15s var(--ease)}
 input::placeholder{color:var(--slag);opacity:.6}
 input:focus{outline:none;border-color:var(--amber)}
 button:focus-visible,summary:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 
-.ages{display:flex;flex-wrap:wrap;gap:6px}
-.age{font:17px var(--body);border:1px solid var(--iron);background:none;color:var(--ash);border-radius:3px;padding:5px 12px;cursor:pointer}
+.ages{display:flex;flex-wrap:wrap;gap:8px}
+.age{font:16px var(--body);border:1px solid var(--iron);background:none;color:var(--ash);border-radius:3px;padding:4px 12px;cursor:pointer;
+  transition:color .15s var(--ease),background-color .15s var(--ease),border-color .15s var(--ease)}
 .age:hover{border-color:var(--slag)}
 .age[aria-pressed="true"]{background:var(--amber);border-color:var(--amber);color:var(--onamber)}
 
 .finder{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:end}
-.finder input{font-size:20px;max-width:none}
+.finder input{max-width:none}
 /* Name and friends side by side, stacked on narrow screens. Labels sit on the bottom so the boxes line up */
 .who{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:end}
 .who input{max-width:none}
 @media (max-width:560px){.who{grid-template-columns:1fr}}
-select{font:500 20px var(--body);color:var(--ash);background:var(--anvil);border:1px solid var(--iron);border-bottom:3px solid var(--iron);border-radius:3px;padding:9px 10px}
+select{font:500 22px var(--body);color:var(--ash);background:var(--anvil);border:1px solid var(--iron);border-bottom:3px solid var(--iron);border-radius:3px;padding:8px 12px;transition:border-color .15s var(--ease)}
 select:focus{outline:none;border-color:var(--amber)}
 
 .results h2{font:500 26px/1.2 var(--body);margin:0}
-.results>p{color:var(--slag);font-size:17px;margin:6px 0 14px}
+.results>p{color:var(--slag);font-size:16px;margin:8px 0 16px}
 
 /* One row per item. The ingot is the only coloured thing in the row */
 .item{border-top:1px solid var(--iron)}
@@ -74,59 +84,56 @@ select:focus{outline:none;border-color:var(--amber)}
 .item>summary{display:grid;grid-template-columns:64px 1fr;gap:16px;align-items:center;padding:12px 4px;cursor:pointer;list-style:none}
 .item>summary::-webkit-details-marker{display:none}
 .item>summary:hover .nm{color:var(--amber)}
-.ingot{height:40px;display:grid;place-items:center;font:700 22px var(--body);background:var(--hc);color:var(--oc);
+.ingot{height:40px;display:grid;place-items:center;font:600 22px var(--body);background:var(--hc);color:var(--oc);
   clip-path:polygon(9% 0,91% 0,100% 100%,0 100%)}
-.nm{font-size:20px;line-height:1.25;display:block}
-.sub{font-size:15px;color:var(--slag);display:block}
+.nm{font-size:19px;line-height:1.25;display:block;transition:color .15s var(--ease)}
+.sub{font-size:14px;color:var(--slag);display:block}
 .cost{font-size:16px;display:block}
 .cost.free{color:var(--good)}
 .h4{--hc:var(--h4);--oc:var(--on4)}.h5{--hc:var(--h5);--oc:var(--on5)}.h6{--hc:var(--h6);--oc:var(--on6)}
 .h7{--hc:var(--h7);--oc:var(--on7)}.h8{--hc:var(--h8);--oc:var(--on8)}
-/* Hot iron glows. The glow sits on a wrapper because clip-path would cut it off */
-.heat{display:block;filter:drop-shadow(0 0 calc(10px*var(--glow)) var(--hc))}
-.h4 .heat,.h5 .heat{filter:none}
-.h6 .heat{filter:drop-shadow(0 0 calc(5px*var(--glow)) var(--hc))}
-@media (prefers-reduced-motion:no-preference){
-  .h7 .heat,.h8 .heat{animation:ember 2.6s ease-in-out infinite alternate}
-  @keyframes ember{from{filter:drop-shadow(0 0 calc(6px*var(--glow)) var(--hc))}to{filter:drop-shadow(0 0 calc(16px*var(--glow)) var(--hc))}}
-}
-.h8 .nm{font-weight:700}
+/* Only yellow and white-hot iron glows. The glow sits on a wrapper because clip-path would cut it off */
+.heat{display:block}
+.h7 .heat{filter:drop-shadow(0 0 calc(6px*var(--glow)) var(--hc))}
+.h8 .heat{filter:drop-shadow(0 0 calc(10px*var(--glow)) var(--hc))}
 
 .low{margin-top:20px}
-.low>summary{cursor:pointer;font-size:17px;color:var(--slag);padding:6px 0}
+.low>summary{cursor:pointer;font-size:16px;color:var(--slag);padding:8px 0}
 .low .item{opacity:.8}
 
-.body{padding:0 4px 18px 84px;font-size:17px}
+.body{padding:0 4px 20px 84px;font-size:16px}
 .body p{margin:8px 0}
-.targets{display:flex;flex-wrap:wrap;gap:6px}
-.target{font:17px var(--body);border:1px solid var(--iron);background:none;color:var(--ash);border-radius:3px;padding:4px 12px;cursor:pointer;display:grid;line-height:1.25;text-align:center}
-.target small{font-size:13px;color:var(--slag)}
+.targets{display:flex;flex-wrap:wrap;gap:8px}
+.target{font:16px var(--body);border:1px solid var(--iron);background:none;color:var(--ash);border-radius:3px;padding:4px 12px;cursor:pointer;display:grid;line-height:1.25;text-align:center;
+  transition:color .15s var(--ease),background-color .15s var(--ease),border-color .15s var(--ease)}
+.target small{font-size:14px;color:var(--slag)}
 .target:hover{border-color:var(--slag)}
-.target[aria-pressed="true"]{border-color:var(--amber);color:var(--amber)}
-.route{margin-top:10px;font-size:16px}
-.route .runhead{margin:14px 0 4px;color:var(--slag)}
+.target[aria-pressed="true"]{background:var(--amber);border-color:var(--amber);color:var(--onamber)}
+.target[aria-pressed="true"] small{color:inherit;opacity:.8}
+.route{margin-top:12px;font-size:16px}
+.route .runhead{margin:16px 0 4px;color:var(--slag)}
 .route .runhead:first-child{margin-top:0}
-.step{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:baseline;padding:2px 0}
+.step{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:baseline;padding:2px 0}
 .step>b{font-weight:500;min-width:6ch}
-.step>span{display:flex;flex-wrap:wrap;gap:2px 14px}
-.why{margin:0 0 2px;font-size:15px;color:var(--slag)}
-.step+.why{padding-left:calc(6ch + 14px)}
+.step>span{display:flex;flex-wrap:wrap;gap:2px 16px}
+.why{margin:0 0 2px;font-size:14px;color:var(--slag)}
+.step+.why{padding-left:calc(6ch + 16px)}
 .give{margin:2px 0;padding-left:12px;border-left:2px solid var(--amber);color:var(--amber)}
 .ok{color:var(--good)}.bad{color:var(--bad)}
-.mats{border-collapse:collapse;margin-top:6px;font-size:16px}
-.mats th{font-weight:400;color:var(--slag);font-size:14px;text-align:right;padding:2px 0 4px 18px}
-.mats td{text-align:right;padding:3px 0 3px 18px;border-top:1px solid var(--iron)}
+.mats{border-collapse:collapse;margin-top:8px;font-size:16px}
+.mats th{font-weight:400;color:var(--slag);font-size:14px;text-align:right;padding:4px 0 4px 20px}
+.mats td{text-align:right;padding:4px 0 4px 20px;border-top:1px solid var(--iron)}
 .mats td:first-child{text-align:left;padding-left:0}
-.mats td:last-child{font-weight:700}
-.goal{font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.mats td:last-child{font-weight:600}
+.goal{font-weight:600;text-decoration:underline;text-underline-offset:3px}
 
 details.how{border-top:1px solid var(--iron);padding-top:16px}
-details.how>summary{cursor:pointer;font-size:18px;color:var(--slag)}
-details.how p{margin:12px 0;font-size:17px;max-width:60ch}
+details.how>summary{cursor:pointer;font-size:16px;color:var(--slag)}
+details.how p{margin:12px 0;font-size:16px;max-width:60ch}
 
 @media (max-width:480px){
   .item>summary{grid-template-columns:52px 1fr;gap:12px}
-  .ingot{height:34px;font-size:19px}
+  .ingot{height:36px;font-size:19px}
   .body{padding-left:4px}
 }
 </style>
@@ -139,6 +146,7 @@ details.how p{margin:12px 0;font-size:17px;max-width:60ch}
     <p class="lede">Every roll at the Forge of Potential is fixed by your character's name. Type it in to see which weapons and armour will take your idols furthest.</p>
   </header>
 
+  <div class="controls">
   <div class="who">
   <label class="field" for="cname">
     <span>Your character, capitals included</span>
@@ -166,7 +174,9 @@ details.how p{margin:12px 0;font-size:17px;max-width:60ch}
       <select id="aim"></select>
     </label>
   </div>
+  </div>
 
+  <div class="output">
   <section class="results" id="out" hidden>
     <h2 id="heading"></h2>
     <p id="intro"></p>
@@ -181,6 +191,7 @@ details.how p{margin:12px 0;font-size:17px;max-width:60ch}
     <p>With friends, each character has their own rolls, and only the character pressing the button counts. Who crafted the item doesn't matter. The route names who should do each step. Playing together on a server hasn't been tested yet, so check the first prediction on a cheap upgrade.</p>
     <p>The lists assume this character hasn't used idols on these items yet, and that you bring each new copy of an item to level 3 yourself. If an item breaks, craft a new one, bring it to level 3 and follow the next run. Rolls belong to the item type, not the single item, so a new copy carries on where the old one stopped.</p>
   </details>
+  </div>
 </main>
 
 <script>
@@ -356,11 +367,11 @@ details.how p{margin:12px 0;font-size:17px;max-width:60ch}
     var route=el("div","route");
     for(var i=0;i<=c.run;i++){
       var steps=p.runs[i].filter(function(s){return !(i===c.run&&s.from>=target);});
-      if(c.run>0)route.appendChild(el("p","runhead",i===0?"Start with the item at level 3.":"Craft a new copy and bring it to level 3."));
+      if(c.run>0)route.appendChild(el("p","runhead",i===0?"Start with the item at level 3":"Craft a new copy and bring it to level 3"));
       var groups=[];
       steps.forEach(function(s){var g=groups[groups.length-1];if(g&&g.who===s.who)g.steps.push(s);else groups.push({who:s.who,steps:[s]});});
       groups.forEach(function(g,k){
-        if(group&&k>0)route.appendChild(el("p","give","Hand the item and "+g.steps.length+" idol"+(g.steps.length===1?"":"s")+" to "+p.names[g.who]+"."));
+        if(group&&k>0)route.appendChild(el("p","give","Hand the item and "+g.steps.length+" idol"+(g.steps.length===1?"":"s")+" to "+p.names[g.who]));
         var row=el("div","step");
         if(group)row.appendChild(el("b",null,p.names[g.who]));
         var list=el("span");
