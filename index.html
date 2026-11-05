@@ -10,6 +10,7 @@
 /* The smithy at night. An item's level is shown as the colour of heated iron: cold grey, cherry, orange, yellow, white-hot. */
 :root{
   --soot:#1f1c19; --anvil:#28241f; --iron:#3b3631; --ash:#ebe4d8; --slag:#a69d8f; --amber:#f2a63b;
+  --edge:#746d63; --hint:#928a7d;
   --good:#8fbf72; --bad:#e2674e;
   --h4:#625c55; --h5:#9e2f1c; --h6:#e2611b; --h7:#f6b42c; --h8:#fff0bf;
   --on4:#ebe4d8; --on5:#fbe7dc; --on6:#1f1c19; --on7:#1f1c19; --on8:#1f1c19;
@@ -21,12 +22,14 @@
 /* Light: cool stone, not parchment. Heat colours deepen so they hold up on a pale ground */
 @media (prefers-color-scheme:light){:root:not([data-theme="dark"]){
   --soot:#dedcd7; --anvil:#ecebe7; --iron:#c3beb5; --ash:#26221d; --slag:#5f584f; --amber:#8f4e06; --onamber:#fff;
+  --edge:#827c73; --hint:#6f6860;
   --good:#356b23; --bad:#a8301c;
   --h4:#79736b; --h5:#9a2b19; --h6:#bd4a10; --h7:#e09a10; --h8:#f5cf55;
   --on4:#fff; --on5:#fff; --on6:#fff; --on7:#26221d; --on8:#26221d;
   --glow:.45; color-scheme:light}}
 :root[data-theme="light"]{
   --soot:#dedcd7; --anvil:#ecebe7; --iron:#c3beb5; --ash:#26221d; --slag:#5f584f; --amber:#8f4e06; --onamber:#fff;
+  --edge:#827c73; --hint:#6f6860;
   --good:#356b23; --bad:#a8301c;
   --h4:#79736b; --h5:#9a2b19; --h6:#bd4a10; --h7:#e09a10; --h8:#f5cf55;
   --on4:#fff; --on5:#fff; --on6:#fff; --on7:#26221d; --on8:#26221d;
@@ -58,19 +61,19 @@ header h1{font:400 clamp(44px,11vw,72px)/1 var(--title);margin:0;color:var(--ash
 
 .field{display:grid;gap:8px}
 .field>span{font-size:16px;color:var(--slag)}
-input{font:500 22px var(--body);color:var(--ash);background:var(--anvil);border:1px solid var(--iron);border-bottom:3px solid var(--iron);border-radius:3px;padding:8px 12px;width:100%;max-width:420px;transition:border-color .15s var(--ease)}
-input::placeholder{color:var(--slag);opacity:.6}
+input{font:500 22px var(--body);color:var(--ash);background:var(--anvil);border:1px solid var(--edge);border-bottom:3px solid var(--edge);border-radius:3px;padding:8px 12px;width:100%;max-width:420px;transition:border-color .15s var(--ease)}
+input::placeholder{color:var(--hint);opacity:1}
 input:focus{outline:none;border-color:var(--amber)}
 button:focus-visible,summary:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 
 .ages{display:flex;flex-wrap:wrap;gap:8px}
-.age{font:16px var(--body);border:1px solid var(--iron);background:none;color:var(--ash);border-radius:3px;padding:4px 12px;cursor:pointer;
+.age{font:16px var(--body);border:1px solid var(--edge);background:none;color:var(--ash);border-radius:3px;padding:4px 12px;cursor:pointer;
   transition:color .15s var(--ease),background-color .15s var(--ease),border-color .15s var(--ease)}
-.age:hover{border-color:var(--slag)}
+.age:hover{border-color:var(--ash)}
 .age[aria-pressed="true"]{background:var(--amber);border-color:var(--amber);color:var(--onamber)}
 /* Start and aim levels are buttons like the ages, since a dropdown's open list can't use the page font in every browser */
 .levels{display:grid;gap:16px}
-.lvl{min-width:40px;font-variant-numeric:lining-nums tabular-nums}
+.lvl{min-width:40px}
 
 /* Name and friends side by side, stacked on narrow screens. Labels sit on the bottom so the boxes line up */
 .who{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:end}
@@ -101,15 +104,14 @@ button:focus-visible,summary:focus-visible{outline:2px solid var(--amber);outlin
 
 .low{margin-top:20px}
 .low>summary{cursor:pointer;font-size:16px;color:var(--slag);padding:8px 0}
-.low .item{opacity:.8}
 
 .body{padding:0 4px 20px 84px;font-size:16px}
 .body p{margin:8px 0}
 .targets{display:flex;flex-wrap:wrap;gap:8px}
-.target{font:16px var(--body);border:1px solid var(--iron);background:none;color:var(--ash);border-radius:3px;padding:4px 12px;cursor:pointer;display:grid;line-height:1.25;text-align:center;
+.target{font:16px var(--body);border:1px solid var(--edge);background:none;color:var(--ash);border-radius:3px;padding:4px 12px;cursor:pointer;display:grid;line-height:1.25;text-align:center;
   transition:color .15s var(--ease),background-color .15s var(--ease),border-color .15s var(--ease)}
 .target small{font-size:14px;color:var(--slag)}
-.target:hover{border-color:var(--slag)}
+.target:hover{border-color:var(--ash)}
 .target[aria-pressed="true"]{background:var(--amber);border-color:var(--amber);color:var(--onamber)}
 .target[aria-pressed="true"] small{color:inherit;opacity:.8}
 .route{margin-top:12px;font-size:16px}
@@ -132,6 +134,14 @@ button:focus-visible,summary:focus-visible{outline:2px solid var(--amber);outlin
 details.how{border-top:1px solid var(--iron);padding-top:16px}
 details.how>summary{cursor:pointer;font-size:16px;color:var(--slag)}
 details.how p{margin:12px 0;font-size:16px;max-width:60ch}
+
+/* Rules above that use the font shorthand reset figures to old-style, where 10 reads as IO. Restate lining figures after them */
+.ingot,.age,.target,input,.results h2{font-variant-numeric:lining-nums tabular-nums}
+/* Hidden on screen, read by screen readers */
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.empty{color:var(--slag);margin:0;max-width:44ch}
+/* Bigger buttons for fingers */
+@media (pointer:coarse){.age{min-height:44px;min-width:44px}}
 
 @media (max-width:480px){
   .item>summary{grid-template-columns:52px 1fr;gap:12px}
@@ -185,9 +195,11 @@ details.how p{margin:12px 0;font-size:16px;max-width:60ch}
   </div>
 
   <div class="output">
+  <p class="empty" id="empty">Type your character's name to see how far each item goes before it breaks.</p>
   <section class="results" id="out" hidden>
     <h2 id="heading"></h2>
     <p id="intro"></p>
+    <p class="sr" id="status" role="status"></p>
     <div id="list"></div>
   </section>
 
@@ -299,8 +311,8 @@ details.how p{margin:12px 0;font-size:16px;max-width:60ch}
     levelButtons($("aim"),START+2,GOAL,aim,"fo-aim");
     $("runes").textContent=runes(nm);
     Array.prototype.forEach.call($("ages").children,function(b){b.setAttribute("aria-pressed",b.dataset.age===age?"true":"false");});
-    $("out").hidden=!nm;box.innerHTML="";
-    if(!nm)return;
+    $("out").hidden=!nm;$("empty").hidden=!!nm;box.innerHTML="";
+    if(!nm){$("status").textContent="";return;}
     var rows=[];
     AGES.forEach(function(xs,a){
       if(age!=="all"&&String(a)!==age)return;
@@ -310,6 +322,7 @@ details.how p{margin:12px 0;font-size:16px;max-width:60ch}
         var p=plan(names,x[1]);rows.push({x:x,age:a,p:p,c:cost(p,aim)});
       });
     });
+    $("status").textContent=rows.length===1?"1 item":rows.length+" items";
     var showAge=age==="all";
     if(q){
       $("heading").textContent="\u201c"+$("q").value.trim()+"\u201d for "+together(names)+(age==="all"?"":" in "+AGENAMES[+age][0]);
@@ -353,7 +366,7 @@ details.how p{margin:12px 0;font-size:16px;max-width:60ch}
 
   function itemRow(r,showAge,aim){
     var p=r.p,d=el("details","item "+heat(p.safe)),s=el("summary");
-    var w=el("span","heat");w.appendChild(el("span","ingot",p.safe>=GOAL?GOAL+"+":p.safe));
+    var w=el("span","heat");w.appendChild(el("span","sr","Goes without a break to level "));w.appendChild(el("span","ingot",p.safe>=GOAL?GOAL+"+":p.safe));
     var t=el("span");
     t.appendChild(el("span","nm",r.x[0]));
     var sub=KINDS[r.x[2]];
@@ -371,7 +384,7 @@ details.how p{margin:12px 0;font-size:16px;max-width:60ch}
     var b=el("div","body");
     var levels=[];for(var l=START+1;l<=GOAL;l++)if(p.reached[l])levels.push(l);
     if(!levels.length){b.appendChild(el("p",null,"Going past level "+START+" takes more than "+MAXLOST+" broken items."));return b;}
-    b.appendChild(el("p",null,"Aim for level"));
+    b.appendChild(el("p",null,"Show the route to level"));
     var chips=el("div","targets"),out=el("div");
     levels.forEach(function(l){
       var c=el("button","target");c.type="button";
